@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+"use client";
 import { Montserrat_Alternates, Montserrat } from "next/font/google";
 import "./globals.css";
-import NavbarGuest from "@/components/common/NavbarGuest";
-import BottomBar from "@/components/common/BottomBar";
+import AuthLayout from "@/components/layouts/AuthLayout";
+import { SessionProvider } from "next-auth/react";
 
 const mostSans = Montserrat({
   variable: "--font-most-sans",
@@ -15,10 +15,10 @@ const geistAlter = Montserrat_Alternates({
   weight: ["400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  title: "Give a paw!",
-  description: "Happy to help you give a paw!",
-};
+// export const metadata: Metadata = {
+//   title: "Give a paw!",
+//   description: "Happy to help you give a paw!",
+// };
 
 export default function RootLayout({
   children,
@@ -30,14 +30,9 @@ export default function RootLayout({
       <body
         className={`${mostSans.variable} ${geistAlter.variable} antialiased`}
       >
-        <header className="container mx-auto">
-          <NavbarGuest />
-        </header>
-
-        {children}
-        <footer className="">
-          <BottomBar />
-        </footer>
+        <SessionProvider>
+          <AuthLayout>{children}</AuthLayout>
+        </SessionProvider>
       </body>
     </html>
   );

@@ -10,6 +10,10 @@ export default {
     extend: {
       colors: {
         primary: {
+          cream: "#FFFAEF",
+          pink: "#FF819D",
+          softpink: "#FFE0E1",
+          red: "#A53E55",
           50: "#FFF8E9",
           100: "#FFF4F6",
           200: "#FFD2D2",
