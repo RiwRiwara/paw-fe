@@ -124,7 +124,7 @@ export default function Home() {
           {/* News Card 4 (Donation Amount) */}
           <div className="col-span-2 bg-primary-softpink rounded-lg border p-4 border-red-600 row-span-4 flex flex-col gap-2 col-start-3 row-start-1">
             <h2 className="text-xl sm:text-2xl font-bold text-primary-red">ยอดเงินปัจจุบัน</h2>
-            <div className="px-4 py-2  text-4xl  font-bold text-primary-red">
+            <div className="px-4 py-2  text-4xl  font-bold text-primary-pink bg-white  p-6 rounded-3xl w-fit border border-red-600 my-6">
               20,000
             </div>
             <p className="text-sm sm:text-base text-primary-400">
@@ -147,12 +147,15 @@ export default function Home() {
       {/* Section 3: Campaign */}
       <CampaignCard
         title="Campaign"
-        description="Lorem ipsum dolor sit amet consectetur. Pellentesque tristique nunc fermentum nisi le Lorem ipsum dolor sit amet consectetur, adipisicing elit. Doloremque rerum adipisci nulla! Dolore neque qui quia hic, minus debitis natus nesciunt nulla ex provident consequuntur velit unde, aliquid ipsum magni!"
-        donationLabel="Donation"
+        description="Lorem ipsum dolor sit amet consectetur. Pellentesque tristique nunc fermentum nisi le Lorem ipsum dolor sit amet consectetur, adipisicing elit. Doloremque rerum adipisci nulla!"
+        donationLabel="Donate"
         donationAmount="4,500"
         donationGoal="6,500"
         campaignImage="/images/landing/camp2.png"
         rightSideImage="/images/landing/new5.png"
+        isNew={true}
+        foundationName="Soi Dog Foundation"
+        foundationSubtitle="ระดมทุนเพื่อสุนัขพิการ"
       />
 
       {/* Section 4: Contact Us */}

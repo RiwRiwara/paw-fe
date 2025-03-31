@@ -8,6 +8,9 @@ interface CampaignCardProps {
   donationGoal: string;
   campaignImage: string;
   rightSideImage: string;
+  isNew?: boolean;
+  foundationName?: string;
+  foundationSubtitle?: string;
   className?: string;
 }
 
@@ -19,37 +22,89 @@ const CampaignCard = ({
   donationGoal,
   campaignImage,
   rightSideImage,
+  isNew = true,
+  foundationName = "Soi Dog Foundation",
+  foundationSubtitle = "ระดมทุนเพื่อสุนัขพิการ",
   className = "",
 }: CampaignCardProps) => {
   return (
-    <div className={`container mx-auto my-4 ${className}`}>
-      <div className="bg-primary-cream p-4 rounded-md grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="border-2 border-yellow-700 p-4 rounded-xl flex flex-col gap-3 justify-center items-center px-6 md:px-10">
-          <h2 className="text-xl sm:text-2xl font-bold text-yellow-700">{title}</h2>
-          <div className="text-sm sm:text-base text-yellow-700">
+    <div className={`container mx-auto my-8 ${className}`}>
+
+      <div className="relative bg-primary-cream rounded-3xl overflow-hidden shadow-lg grid grid-cols-1 md:grid-cols-2 max-w-5xl mx-auto">
+
+        {/* Left side */}
+        <div className="p-8 relative">
+          {/* Bone decoration */}
+          <div className="absolute top-4 right-4">
+            <Image
+              src="/images/landing/bone.png"
+              alt="bone decoration"
+              width={40}
+              height={30}
+            />
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-bold text-yellow-800 mb-4">{title}</h2>
+
+          <div className="text-sm sm:text-base text-yellow-700 mb-6">
             {description}
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-yellow-700">{donationLabel}</h3>
-          <div className="text-2xl sm:text-3xl font-bold text-yellow-700">
-            {donationAmount} / {donationGoal}
+
+          <h3 className="text-xl font-bold text-yellow-800 mb-2">{donationLabel}</h3>
+
+          <div className="inline-block bg-white py-3 px-6 rounded-full shadow-md mb-6">
+            <span className="text-2xl font-bold text-yellow-800">{donationAmount}</span>
+            <span className="text-lg text-yellow-600"> / {donationGoal}</span>
           </div>
-          <div className="relative w-1/2 aspect-square">
-            <Image 
-              src={campaignImage} 
-              alt="campaign image" 
-              fill 
-              className="object-contain"
+
+          {/* Paw decoration */}
+          <div className="absolute bottom-24 left-6">
+            <Image
+              src="/images/landing/paw-small.png"
+              alt="paw decoration"
+              width={30}
+              height={30}
+            />
+          </div>
+
+          {/* Campaign image */}
+          <div className="relative w-full h-48 rounded-xl overflow-hidden border-2 border-yellow-600">
+            <Image
+              src={campaignImage}
+              alt="campaign image"
+              fill
+              className="object-cover"
             />
           </div>
         </div>
-        <div className="col-span-1 md:col-span-2 flex items-center justify-center">
-          <div className="relative w-full md:w-3/4 aspect-square">
-            <Image 
-              src={rightSideImage} 
-              alt="campaign side image" 
-              fill 
-              className="object-contain"
+
+        {/* Right side */}
+        <div className="relative">
+          {/* Main image */}
+          <div className="relative w-full h-full">
+            <Image
+              src={rightSideImage}
+              alt="campaign side image"
+              fill
+              className="object-cover"
+              priority
             />
+          </div>
+
+          {/* Foundation logo */}
+          <div className="absolute top-4 right-4">
+            <Image
+              src="/images/landing/soid.png"
+              alt="foundation logo"
+              width={60}
+              height={60}
+            />
+          </div>
+
+          {/* Foundation name overlay */}
+          <div className="absolute bottom-8 left-0 right-0 text-center text-white">
+            <h3 className="text-2xl font-bold mb-1">{foundationSubtitle}</h3>
+            <p className="text-xl">{foundationName}</p>
           </div>
         </div>
       </div>

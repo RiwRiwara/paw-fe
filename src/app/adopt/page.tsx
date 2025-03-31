@@ -80,6 +80,8 @@ export default function Adopt() {
     }
   };
 
+  const last_pets = pets.slice(0, 3);
+
   return (
     <div className="flex flex-col">
       {/* Section 1 */}
@@ -87,6 +89,49 @@ export default function Adopt() {
       </div>
 
       {/* Section 2 */}
+      <div className="flex flex-col gap-4 container mx-auto">
+        <div className="flex flex-row justify-center items-center">
+          <Image src="/images/adopt/adoptext.png" alt="adopt" width={450} height={100} />
+
+        </div>
+
+        <div className="flex flex-row flex-wrap gap-8 justify-center my-6 ">
+
+          {last_pets.map(({ petId, name, age, gender, imageUrl }) => (
+            <div
+              key={petId}
+              className="flex flex-col items-center text-center w-full max-w-sm  shadow-lg rounded-2xl bg-white transition transform hover:scale-105 pb-4"
+            >
+              <div className="flex items-center justify-center overflow-hidden rounded-lg m-4">
+                <Image
+                  src={imageUrl || "https://dummyimage.com/168x100.png/dddddd/000000"}
+                  alt={name}
+                  width={400}
+                  height={250}
+                  className="object-cover  rounded-full border-2 border-yellow-700"
+                />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-700 mt-3">{name}</h3>
+              <div className="flex flex-row gap-2 mt-4">
+                <div className="text-gray-500">{age}</div>
+                <div className="text-gray-500">{gender}</div>
+              </div>
+
+              <a
+                href={`/pet/?petId=${petId}`}
+                className="mt-4 bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400"
+              >
+                Read More
+              </a>
+            </div>
+          ))}
+
+
+        </div>
+      </div>
+
+
+      {/* Section 3 */}
       <div className="flex flex-col gap-4 container mx-auto">
         <div className="flex flex-row justify-center items-center">
           <Image src="/images/giveapet.png" alt="giveapet" width={450} height={100} />
@@ -111,7 +156,7 @@ export default function Adopt() {
           {pets.map(({ petId, name, age, gender, imageUrl }) => (
             <div
               key={petId}
-              className="flex flex-col items-center text-center w-full max-w-sm border border-primary-400 shadow-lg rounded-xl bg-white transition transform hover:scale-105 pb-4"
+              className="flex flex-col items-center text-center w-full max-w-sm border-2 border-yellow-700 shadow-lg rounded-3xl bg-white transition transform hover:scale-105 pb-4"
             >
               <div className="flex items-center justify-center overflow-hidden rounded-lg">
                 <Image
@@ -130,7 +175,9 @@ export default function Adopt() {
 
               <a
                 href={`/pet/?petId=${petId}`}
-                className="mt-4 bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400"
+                className="mt-4 bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400 font-bold
+                hover:text-white hover:bg-orange-400
+                "
               >
                 Read More
               </a>
