@@ -202,7 +202,7 @@ const api = {
     pet: {
         getCategories: () => apiClient.get<InfoResponse<Category[]>>("/categories"),
         createPet: (body: AddPetBody) => apiClient.post<InfoResponse<UserMetadata[]>>("/pet", body),
-        getPetsByCategory: (foundationId?: number, species?: "Dog" | "Cat") =>
+        getPetsByCategory: (foundationId?: number, species?: "หมา" | "แมว") =>
             apiClient.get<InfoResponse<GetPetsResponse[]>>("/pet/list", { params: { foundationId, species } }),
         getPets: () => apiClient.get<InfoResponse<GetPetsResponse[]>>("/pet/list"),
         getPetProfile: (petId: number) => apiClient.get<InfoResponse<GetPetResponse>>(`/pet/${petId}/info`),

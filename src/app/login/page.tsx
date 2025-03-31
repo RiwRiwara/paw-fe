@@ -30,7 +30,7 @@ const LoginPage: React.FC = () => {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        router.push("/dashboard");
+        router.push("/home");
       }
     };
     
@@ -68,10 +68,10 @@ const LoginPage: React.FC = () => {
                     LOGIN
                 </button>
                 <div className="flex justify-between">
-                    <a href="#" className="text-primary-pink text-sm">
+                    <a href="/forget-password" className="text-primary-pink text-sm">
                         forget password
                     </a>
-                    <a href="#" className="text-primary-pink text-sm">
+                    <a href="/register" className="text-primary-pink text-sm">
                         create account
                     </a>
                 </div>

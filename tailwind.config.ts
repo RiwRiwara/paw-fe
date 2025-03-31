@@ -12,7 +12,7 @@ export default {
         primary: {
           cream: "#FFFAEF",
           pink: "#FF819D",
-          softpink: "#FFE0E1",
+          softpink: "#FFF4F6",
           red: "#A53E55",
           50: "#FFF8E9",
           100: "#FFF4F6",

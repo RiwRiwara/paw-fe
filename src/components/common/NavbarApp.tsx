@@ -39,7 +39,7 @@ const NavbarApp: React.FC = () => {
                     href="/profile"
                     className="bg-orange-400 text-white font-bold py-2 px-4 duration-300 ease-in-out rounded-full"
                 >
-                    Login
+                    Profile
                 </Link>
                 <button
                     onClick={() => signOut({ callbackUrl: "/login" })}

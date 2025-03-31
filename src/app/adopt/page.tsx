@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import api from "@/utils/api";
 
 // Define the type for Category
 interface Category {
@@ -24,52 +24,59 @@ export default function Adopt() {
   const [pets, setPets] = useState<Pet[]>([]);
 
   useEffect(() => {
-    // Fetch categories data from the API
-    async function fetchCategories() {
+    async function fetchData() {
       try {
-        const response = await fetch("http://localhost:8080/api/categories");
-        const data = await response.json();
-
-        if (data.success) {
-          setCategories(data.data); // Assuming the response has a 'data' property
-          setFilteredCategories(data.data); // Initially set all categories
+        // Fetch categories
+        const categoriesResponse = await api.pet.getCategories();
+        if (categoriesResponse.data.success) {
+          setCategories(categoriesResponse.data.data);
+          setFilteredCategories(categoriesResponse.data.data);
+        } else {
+          console.error("Failed to load categories:", categoriesResponse.data.message);
         }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
+
+        // Fetch all pets initially
+        const petsResponse = await api.pet.getPets();
+        if (petsResponse.data.success) {
+          setPets(petsResponse.data.data);
+        } else {
+          console.error("Failed to load pets:", petsResponse.data.message);
+        }
+      } catch (error: any) {
+        console.error("Error fetching data:", error.response?.data?.message || error.message);
       }
     }
 
-    // Fetch pets data from the API
-    async function fetchPets() {
-      try {
-        const response = await fetch("http://localhost:8080/api/pet/list");
-        const data = await response.json();
-
-        if (data.success) {
-          setPets(data.data); // Assuming the response has a 'data' property
-        }
-      } catch (error) {
-        console.error("Error fetching pets:", error);
-      }
-    }
-
-    fetchCategories();
-    fetchPets();
+    fetchData();
   }, []);
 
   // Handle filtering based on category name
-  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const filterValue = e.target.value;
-    setSelectedCategory(filterValue);
+  const handleCategoryClick = async (categoryName: string) => {
+    setSelectedCategory(categoryName);
 
-    if (filterValue === "หมา") {
-      setFilteredCategories(categories.filter((cat) => cat.name === "หมา"));
-    } else if (filterValue === "แมว") {
-      setFilteredCategories(categories.filter((cat) => cat.name === "แมว"));
-    } else if (filterValue === "มูลนิธิสัตว์พิการ") {
-      setFilteredCategories(categories.filter((cat) => cat.name === "มูลนิธิสัตว์พิการ"));
-    } else {
-      setFilteredCategories(categories); // Reset filter to show all
+    try {
+      let petsResponse;
+      if (categoryName === "หมา") {
+        petsResponse = await api.pet.getPetsByCategory(undefined, "หมา");
+        setFilteredCategories(categories.filter((cat) => cat.name === "หมา"));
+      } else if (categoryName === "แมว") {
+        petsResponse = await api.pet.getPetsByCategory(undefined, "แมว");
+        setFilteredCategories(categories.filter((cat) => cat.name === "แมว"));
+      } else if (categoryName === "มูลนิธิสัตว์พิการ") {
+        setFilteredCategories(categories.filter((cat) => cat.name === "มูลนิธิสัตว์พิการ"));
+        petsResponse = await api.pet.getPets(); // You might want to modify this based on your needs
+      } else {
+        setFilteredCategories(categories);
+        petsResponse = await api.pet.getPets();
+      }
+
+      if (petsResponse.data.success) {
+        setPets(petsResponse.data.data);
+      } else {
+        console.error("Failed to load filtered pets:", petsResponse.data.message);
+      }
+    } catch (error: any) {
+      console.error("Error filtering pets:", error.response?.data?.message || error.message);
     }
   };
 
@@ -85,17 +92,20 @@ export default function Adopt() {
           <Image src="/images/giveapet.png" alt="giveapet" width={450} height={100} />
         </div>
         <div className="flex flex-row justify-center gap-4">
-          {
-            categories.map((category) => (
-              <a 
-                key={category.name} 
-                href="#" 
-                className={`text-gray-400 font-medium ${selectedCategory === category.name ? "text-orange-400" : ""}`}
-              >
-                {category.name}
-              </a>
-            ))
-          }
+          {categories.map((category) => (
+            <a
+              key={category.name}
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handleCategoryClick(category.name);
+              }}
+              className={`text-gray-400 font-medium ${selectedCategory === category.name ? "text-orange-400" : ""
+                }`}
+            >
+              {category.name}
+            </a>
+          ))}
         </div>
         <div className="flex flex-row flex-wrap gap-8 justify-center my-6 ">
           {pets.map(({ petId, name, age, gender, imageUrl }) => (
@@ -103,8 +113,14 @@ export default function Adopt() {
               key={petId}
               className="flex flex-col items-center text-center w-full max-w-sm border border-primary-400 shadow-lg rounded-xl bg-white transition transform hover:scale-105 pb-4"
             >
-              <div className=" flex items-center justify-center overflow-hidden rounded-lg">
-                <Image src={"https://dummyimage.com/168x100.png/dddddd/000000"} alt={name} width={400} height={300} className="object-cover" />
+              <div className="flex items-center justify-center overflow-hidden rounded-lg">
+                <Image
+                  src={imageUrl || "https://dummyimage.com/168x100.png/dddddd/000000"}
+                  alt={name}
+                  width={400}
+                  height={300}
+                  className="object-cover"
+                />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mt-3">{name}</h3>
               <div className="flex flex-row gap-2 mt-4">
