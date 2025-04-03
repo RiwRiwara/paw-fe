@@ -12,6 +12,7 @@ interface CampaignCardProps {
   foundationName?: string;
   foundationSubtitle?: string;
   className?: string;
+  foundationLogo?: string;
 }
 
 const CampaignCard = ({
@@ -26,6 +27,7 @@ const CampaignCard = ({
   foundationName = "Soi Dog Foundation",
   foundationSubtitle = "ระดมทุนเพื่อสุนัขพิการ",
   className = "",
+  foundationLogo = "/images/landing/soid.png",
 }: CampaignCardProps) => {
   return (
     <div className={`container mx-auto my-8 ${className}`}>

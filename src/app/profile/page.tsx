@@ -97,10 +97,10 @@ export default function Profile() {
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{userData.name}</h1>
               <p className="text-gray-600 mt-1">Member since {userData.joinDate}</p>
-              
+
               <div className="mt-4 flex flex-col md:flex-row gap-4">
-                <Link 
-                  href="/profile/edit" 
+                <Link
+                  href="/profile/edit"
                   className="bg-orange-400 text-white px-6 py-2 rounded-full font-medium hover:bg-orange-500 transition-colors inline-flex items-center justify-center"
                 >
                   <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -109,8 +109,8 @@ export default function Profile() {
                   </svg>
                   Edit Profile
                 </Link>
-                <Link 
-                  href="/adopt" 
+                <Link
+                  href="/adopt"
                   className="bg-white text-orange-400 border border-orange-400 px-6 py-2 rounded-full font-medium hover:bg-orange-50 transition-colors inline-flex items-center justify-center"
                 >
                   <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -133,7 +133,7 @@ export default function Profile() {
           <div className="md:col-span-1">
             <div className="bg-white rounded-2xl shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
-              
+
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Email</h3>
@@ -157,14 +157,14 @@ export default function Profile() {
             <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800">My Pets</h2>
-                <Link 
-                  href="/profile/pets" 
+                <Link
+                  href="/pet/create"
                   className="text-orange-400 hover:text-orange-500 text-sm font-medium"
                 >
-                  View All
+                  Create New Pet
                 </Link>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {userData.pets.map(pet => (
                   <div key={pet.id} className="flex items-center gap-4 p-3 rounded-xl border border-gray-200 hover:border-orange-200 transition-colors">
@@ -176,102 +176,19 @@ export default function Profile() {
                         className="object-cover"
                       />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-medium text-gray-800">{pet.name}</h3>
                       <p className="text-sm text-gray-500">{pet.breed} • {pet.age}</p>
                     </div>
+                    <Link href={`/pet/edit?petId=${pet.id}`} className="text-orange-400 hover:text-orange-500 text-sm">
+                      Edit
+                    </Link>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Donation History */}
-            <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Donation History</h2>
-                <Link 
-                  href="/profile/donations" 
-                  className="text-orange-400 hover:text-orange-500 text-sm font-medium"
-                >
-                  View All
-                </Link>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left text-gray-500 text-sm border-b">
-                      <th className="pb-2 font-medium">Date</th>
-                      <th className="pb-2 font-medium">Amount</th>
-                      <th className="pb-2 font-medium">Foundation</th>
-                      <th className="pb-2 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {userData.donations.map(donation => (
-                      <tr key={donation.id} className="border-b border-gray-100">
-                        <td className="py-3 text-gray-800">{donation.date}</td>
-                        <td className="py-3 text-gray-800">{donation.amount}</td>
-                        <td className="py-3 text-gray-800">{donation.foundation}</td>
-                        <td className="py-3">
-                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                            {donation.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
 
-            {/* Recent Activities */}
-            <div className="bg-white rounded-2xl shadow-md p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Recent Activities</h2>
-                <Link 
-                  href="/profile/activities" 
-                  className="text-orange-400 hover:text-orange-500 text-sm font-medium"
-                >
-                  View All
-                </Link>
-              </div>
-              
-              <div className="space-y-4">
-                {userData.activities.map(activity => (
-                  <div key={activity.id} className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                      {activity.type === "Adoption" && (
-                        <svg className="w-5 h-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"></path>
-                        </svg>
-                      )}
-                      {activity.type === "Donation" && (
-                        <svg className="w-5 h-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                          <line x1="1" y1="10" x2="23" y2="10"></line>
-                        </svg>
-                      )}
-                      {activity.type === "Volunteer" && (
-                        <svg className="w-5 h-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-gray-800">{activity.type}</h3>
-                        <span className="text-xs text-gray-500">{activity.date}</span>
-                      </div>
-                      <p className="text-gray-600 text-sm">{activity.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </div>

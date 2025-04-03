@@ -30,7 +30,7 @@ const LoginPage: React.FC = () => {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        router.push("/home");
+        router.push("/");
       }
     };
     

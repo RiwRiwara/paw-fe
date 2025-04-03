@@ -3,6 +3,8 @@ import { Montserrat_Alternates, Montserrat } from "next/font/google";
 import "./globals.css";
 import AuthLayout from "@/components/layouts/AuthLayout";
 import { SessionProvider } from "next-auth/react";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const mostSans = Montserrat({
   variable: "--font-most-sans",

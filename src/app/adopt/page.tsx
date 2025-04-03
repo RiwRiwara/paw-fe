@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import api from "@/utils/api";
 
-// Define the type for Category
 interface Category {
   name: string;
   foundationId: number | null;
@@ -35,8 +34,8 @@ export default function Adopt() {
           console.error("Failed to load categories:", categoriesResponse.data.message);
         }
 
-        // Fetch all pets initially
-        const petsResponse = await api.pet.getPets();
+        // Fetch all pets initially using getPetsByCategory without filters
+        const petsResponse = await api.pet.getPetsByCategory();
         if (petsResponse.data.success) {
           setPets(petsResponse.data.data);
         } else {
@@ -50,7 +49,6 @@ export default function Adopt() {
     fetchData();
   }, []);
 
-  // Handle filtering based on category name
   const handleCategoryClick = async (categoryName: string) => {
     setSelectedCategory(categoryName);
 
@@ -64,10 +62,10 @@ export default function Adopt() {
         setFilteredCategories(categories.filter((cat) => cat.name === "แมว"));
       } else if (categoryName === "มูลนิธิสัตว์พิการ") {
         setFilteredCategories(categories.filter((cat) => cat.name === "มูลนิธิสัตว์พิการ"));
-        petsResponse = await api.pet.getPets(); // You might want to modify this based on your needs
+        petsResponse = await api.pet.getPetsByCategory(); // Using default fetch for foundation
       } else {
         setFilteredCategories(categories);
-        petsResponse = await api.pet.getPets();
+        petsResponse = await api.pet.getPetsByCategory();
       }
 
       if (petsResponse.data.success) {
@@ -84,23 +82,19 @@ export default function Adopt() {
 
   return (
     <div className="flex flex-col">
-      {/* Section 1 */}
       <div className="bg-primary-50 flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 relative h-[750px] bg-[url(/images/head.png)]">
       </div>
 
-      {/* Section 2 */}
       <div className="flex flex-col gap-4 container mx-auto">
         <div className="flex flex-row justify-center items-center">
           <Image src="/images/adopt/adoptext.png" alt="adopt" width={450} height={100} />
-
         </div>
 
-        <div className="flex flex-row flex-wrap gap-8 justify-center my-6 ">
-
+        <div className="flex flex-row flex-wrap gap-8 justify-center my-6">
           {last_pets.map(({ petId, name, age, gender, imageUrl }) => (
             <div
               key={petId}
-              className="flex flex-col items-center text-center w-full max-w-sm  shadow-lg rounded-2xl bg-white transition transform hover:scale-105 pb-4"
+              className="flex flex-col items-center text-center w-full max-w-sm shadow-lg rounded-2xl bg-white transition transform hover:scale-105 pb-4"
             >
               <div className="flex items-center justify-center overflow-hidden rounded-lg m-4">
                 <Image
@@ -108,7 +102,7 @@ export default function Adopt() {
                   alt={name}
                   width={400}
                   height={250}
-                  className="object-cover  rounded-full border-2 border-yellow-700"
+                  className="object-cover rounded-full border-2 border-yellow-700"
                 />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mt-3">{name}</h3>
@@ -116,7 +110,6 @@ export default function Adopt() {
                 <div className="text-gray-500">{age}</div>
                 <div className="text-gray-500">{gender}</div>
               </div>
-
               <a
                 href={`/pet/?petId=${petId}`}
                 className="mt-4 bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400"
@@ -125,13 +118,9 @@ export default function Adopt() {
               </a>
             </div>
           ))}
-
-
         </div>
       </div>
 
-
-      {/* Section 3 */}
       <div className="flex flex-col gap-4 container mx-auto">
         <div className="flex flex-row justify-center items-center">
           <Image src="/images/giveapet.png" alt="giveapet" width={450} height={100} />
@@ -145,14 +134,13 @@ export default function Adopt() {
                 e.preventDefault();
                 handleCategoryClick(category.name);
               }}
-              className={`text-gray-400 font-medium ${selectedCategory === category.name ? "text-orange-400" : ""
-                }`}
+              className={`text-gray-400 font-medium ${selectedCategory === category.name ? "text-orange-400" : ""}`}
             >
               {category.name}
             </a>
           ))}
         </div>
-        <div className="flex flex-row flex-wrap gap-8 justify-center my-6 ">
+        <div className="flex flex-row flex-wrap gap-8 justify-center my-6">
           {pets.map(({ petId, name, age, gender, imageUrl }) => (
             <div
               key={petId}
@@ -172,12 +160,9 @@ export default function Adopt() {
                 <div className="text-gray-500">{age}</div>
                 <div className="text-gray-500">{gender}</div>
               </div>
-
               <a
                 href={`/pet/?petId=${petId}`}
-                className="mt-4 bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400 font-bold
-                hover:text-white hover:bg-orange-400
-                "
+                className="mt-4 bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400 font-bold hover:text-white hover:bg-orange-400"
               >
                 Read More
               </a>

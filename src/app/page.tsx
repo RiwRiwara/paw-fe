@@ -1,8 +1,61 @@
+'use client';
 import Image from "next/image";
-import Link from "next/link";
+import { useEffect, useState } from 'react';
 import CampaignCard from "@/components/common/CampaignCard";
+import FoundationCard from "@/components/common/FoundationCard";
+import api from "@/utils/api";
+import Slider from 'react-slick';
+
+interface Campaign {
+  campaignName: string;
+  description: string;
+  foundationId: number;
+  foundationName: string;
+  foundationLogo: string;
+  goalAmount: number;
+  raisedAmount: number;
+}
 
 export default function Home() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const response = await api.user.getCampaign();
+        if (response.data.success) {
+          setCampaigns(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching campaigns:', error);
+      }
+    };
+
+    fetchCampaigns();
+  }, []);
+
+    // Carousel settings
+    const carouselSettings = {
+      dots: true, // Show navigation dots
+      infinite: true, // Loop the carousel
+      speed: 500, // Transition speed in ms
+      slidesToShow: 1, // Show one campaign at a time
+      slidesToScroll: 1, // Scroll one campaign at a time
+      autoplay: true, // Auto-play the carousel
+      autoplaySpeed: 3000, // 3 seconds per slide
+      arrows: true, // Show next/prev arrows
+      responsive: [
+        {
+          breakpoint: 768, // Adjust for smaller screens
+          settings: {
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: false, // Hide arrows on mobile for simplicity
+          },
+        },
+      ],
+    };
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Section 1 */}
@@ -145,18 +198,27 @@ export default function Home() {
 
 
       {/* Section 3: Campaign */}
-      <CampaignCard
-        title="Campaign"
-        description="Lorem ipsum dolor sit amet consectetur. Pellentesque tristique nunc fermentum nisi le Lorem ipsum dolor sit amet consectetur, adipisicing elit. Doloremque rerum adipisci nulla!"
-        donationLabel="Donate"
-        donationAmount="4,500"
-        donationGoal="6,500"
-        campaignImage="/images/landing/camp2.png"
-        rightSideImage="/images/landing/new5.png"
-        isNew={true}
-        foundationName="Soi Dog Foundation"
-        foundationSubtitle="ระดมทุนเพื่อสุนัขพิการ"
-      />
+      <div className="container mx-auto px-4 py-8">
+        <Slider {...carouselSettings}>
+          {campaigns.map((campaign, index) => (
+            <div key={index} className="px-2">
+              <CampaignCard
+                title={campaign.campaignName}
+                description={campaign.description}
+                donationLabel="Donate"
+                donationAmount={campaign.raisedAmount.toString()}
+                donationGoal={campaign.goalAmount.toString()}
+                campaignImage="/images/landing/camp2.png" // Replace with dynamic image if available
+                rightSideImage="/images/landing/new5.png" // Replace with dynamic image if available
+                isNew={index === 0} // Mark first campaign as new
+                foundationName={campaign.foundationName}
+                foundationSubtitle={campaign.description}
+                foundationLogo={campaign.foundationLogo}
+              />
+            </div>
+          ))}
+        </Slider>
+      </div>
 
       {/* Section 4: Contact Us */}
       <div className="flex flex-row justify-center">

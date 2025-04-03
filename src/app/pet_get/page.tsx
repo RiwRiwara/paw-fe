@@ -9,39 +9,58 @@ export default function Pet() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: "",
-    surname: "",
-    accommodation: "",
+    firstname: "", // Changed from name
+    lastname: "",  // Changed from surname
+    accommodateType: "", // Changed from accommodation
     age: "",
-    numPets: "",
+    numOfPets: "", // Changed from numPets
     occupation: "",
     province: "",
-    phone: "",
+    phoneNumber: "", // Changed from phone
   });
+  const [isTermsAccepted, setIsTermsAccepted] = useState(false);
 
-  // Alert and redirect if not authenticated
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       alert("You need to be logged in to access this page.");
-      router.push("/"); // Redirect to the home page if not authenticated
+      router.push("/");
     }
   }, [isAuthenticated, loading, router]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    if (!isTermsAccepted) {
+      alert("Please accept the terms and conditions before submitting.");
+      return;
+    }
+
     try {
-      const response = await api.user.updateUserInfo(formData);
+      // Map form data to match API expectations
+      const payload = {
+        firstname: formData.firstname,
+        lastname: formData.lastname,
+        accommodateType: formData.accommodateType as "SingleFamilyHomes" | "TownHouse" | "ShopHouses" | "ApartmentAndCondo" | undefined,
+        numOfPets: formData.numOfPets ? parseInt(formData.numOfPets) : undefined,
+        occupation: formData.occupation || undefined,
+        province: formData.province || undefined,
+        phoneNumber: formData.phoneNumber || undefined,
+        // Note: age isn't in UpdateUserBody, you might want to add birthday instead if needed
+      };
+
+      const response = await api.user.updateUserInfo(payload);
       if (response.data.success) {
         alert("Profile updated successfully!");
+      } else {
+        alert(`Failed to update profile: ${response.data.message}`);
       }
-    } catch (error) {
-      alert("An error occurred while updating the profile.");
+    } catch (error: any) {
+      alert(`An error occurred: ${error.response?.data?.message || error.message}`);
     }
   };
 
   if (loading || !isAuthenticated) {
-    return <div>Loading...</div>; // Show loading state until authentication check is complete
+    return <div>Loading...</div>;
   }
 
   return (
@@ -62,15 +81,15 @@ export default function Pet() {
             <input
               type="text"
               placeholder="ชื่อ"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              value={formData.firstname}
+              onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
               className="border-0 bg-gray-100 text-gray-500 rounded-lg w-full px-4 py-2"
             />
             <input
               type="text"
               placeholder="นามสกุล"
-              value={formData.surname}
-              onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
+              value={formData.lastname}
+              onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
               className="border-0 bg-gray-100 text-gray-500 rounded-lg w-full px-4 py-2"
             />
           </div>
@@ -79,10 +98,8 @@ export default function Pet() {
             <input
               type="text"
               placeholder=""
-              value={formData.accommodation}
-              onChange={(e) =>
-                setFormData({ ...formData, accommodation: e.target.value })
-              }
+              value={formData.accommodateType}
+              onChange={(e) => setFormData({ ...formData, accommodateType: e.target.value })}
               className="border-0 bg-gray-100 text-gray-500 rounded-lg w-full px-4 py-2"
             />
           </div>
@@ -102,10 +119,10 @@ export default function Pet() {
           <div className="flex flex-col gap-2">
             <label className="text-xl font-medium text-primary-400">จำนวนสัตว์ที่เคยเลี้ยง</label>
             <input
-              type="text"
+              type="number"
               placeholder=""
-              value={formData.numPets}
-              onChange={(e) => setFormData({ ...formData, numPets: e.target.value })}
+              value={formData.numOfPets}
+              onChange={(e) => setFormData({ ...formData, numOfPets: e.target.value })}
               className="border-0 bg-gray-100 text-gray-500 rounded-lg w-full px-4 py-2"
             />
           </div>
@@ -140,14 +157,14 @@ export default function Pet() {
             <input
               type="text"
               placeholder="เบอร์โทรศัพท์"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              value={formData.phoneNumber}
+              onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
               className="border-0 bg-gray-100 text-gray-500 rounded-lg w-full px-4 py-2"
             />
           </div>
         </div>
 
-        <div className="mt-6 container mx-auto ">
+        <div className="mt-6 container mx-auto">
           <h2 className="text-start text-xl font-medium text-primary-400 mb-4">ข้อตกลงและเงื่อนไข</h2>
           <div className="rounded-md border border-primary-400 p-4 text-primary-300 text-md">
             <p className="text-center my-4 flex-wrap">
@@ -155,14 +172,23 @@ export default function Pet() {
             </p>
           </div>
           <div className="flex items-center mt-4">
-            <input id="checked-checkbox" type="checkbox" className="w-4 h-4 bg-gray-100 border-gray-300 rounded-sm" />
+            <input
+              id="checked-checkbox"
+              type="checkbox"
+              checked={isTermsAccepted}
+              onChange={(e) => setIsTermsAccepted(e.target.checked)}
+              className="w-4 h-4 bg-gray-100 border-gray-300 rounded-sm"
+            />
             <label className="ms-2 text-sm font-medium text-primary-300">ยอมรับเงื่อนไขการใช้บริการ</label>
           </div>
         </div>
 
-        <div className="container mx-auto px-10 py-2 flex flex-row justify-center bg-[#A53E55] rounded-xl w-fit border text-white border-gray-400 shadow-md my-10 text-xl font-semibold">
+        <button
+          type="submit"
+          className="container mx-auto px-10 py-2 flex flex-row justify-center bg-[#A53E55] rounded-xl w-fit border text-white border-gray-400 shadow-md my-10 text-xl font-semibold"
+        >
           ส่งข้อมูล
-        </div>
+        </button>
       </form>
     </div>
   );

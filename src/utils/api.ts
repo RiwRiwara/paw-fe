@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { getSession } from "next-auth/react";
 
-// Base configuration from your backend (from config.yaml)
+// Base configuration
 const API_BASE_URL = "http://localhost:8080/api";
 
 const apiClient: AxiosInstance = axios.create({
@@ -192,10 +192,21 @@ interface UploadResponse {
     imageUrl: string;
 }
 
-// API methods with improved typing
+interface CampaignResponse {
+    campaignName: string;
+    description: string;
+    foundationId: number;
+    foundationLogo: string;
+    foundationName: string;
+    goalAmount: number;
+    raisedAmount: number;
+}
+
+// API methods
 const api = {
     auth: {
         register: (body: RegisterBody) => apiClient.post<InfoResponse<User>>("/auth/register", body),
+        login: (body: LoginBody) => apiClient.post<InfoResponse<string>>("/auth/login", body),
         logout: () => apiClient.post<InfoResponse<string>>("/auth/logout"),
         forgetPassword: (body: ForgetPasswordBody) => apiClient.post<InfoResponse<string>>("/auth/forget-password", body),
     },
@@ -204,12 +215,12 @@ const api = {
         createPet: (body: AddPetBody) => apiClient.post<InfoResponse<UserMetadata[]>>("/pet", body),
         getPetsByCategory: (foundationId?: number, species?: "หมา" | "แมว") =>
             apiClient.get<InfoResponse<GetPetsResponse[]>>("/pet/list", { params: { foundationId, species } }),
-        getPets: () => apiClient.get<InfoResponse<GetPetsResponse[]>>("/pet/list"),
         getPetProfile: (petId: number) => apiClient.get<InfoResponse<GetPetResponse>>(`/pet/${petId}/info`),
         getPetAdoptReq: (petId: number) => apiClient.get<InfoResponse<UserMetadata[]>>(`/pet/${petId}/adoption-request`),
     },
     user: {
         getNews: () => apiClient.get<InfoResponse<NewsListResponse[]>>("/news"),
+        getCampaign: () => apiClient.get<InfoResponse<CampaignResponse[]>>("/campaign"),
         uploadImage: (file: File) => {
             const formData = new FormData();
             formData.append("file", file);
