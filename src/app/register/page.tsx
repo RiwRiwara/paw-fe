@@ -4,16 +4,25 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/utils/api";
 
+interface RegisterBody {
+    birthday: string;
+    email: string;
+    firstname: string;
+    lastname: string;
+    password: string;
+    phoneNumber: string;
+}
+
 const RegisterPage: React.FC = () => {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<RegisterBody>({
         email: "",
         password: "",
         firstname: "",
         lastname: "",
         phoneNumber: "",
-        birthday: "",
+        birthday: "", // This will be in "YYYY-MM-DD" format automatically since we're using type="date"
     });
-    const [error, setError] = useState("");
+    const [error, setError] = useState<string>("");
     const router = useRouter();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,7 +34,7 @@ const RegisterPage: React.FC = () => {
         setError("");
 
         try {
-            const response = await api.register(formData);
+            const response = await api.auth.register(formData);
             if (response.data.success) {
                 router.push("/login"); // Redirect to login after successful registration
             } else {
