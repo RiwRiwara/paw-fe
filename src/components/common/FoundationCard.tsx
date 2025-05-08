@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 interface FoundationCardProps {
+  id?: number; // Add foundation ID for linking
   logo: string;
   name: string;
   description: string;
@@ -13,9 +14,11 @@ interface FoundationCardProps {
     website?: string;
   };
   className?: string;
+  onClick?: () => void; // Optional click handler
 }
 
 const FoundationCard = ({
+  id = 1, // Default ID if not provided
   logo,
   name,
   description,
@@ -23,13 +26,22 @@ const FoundationCard = ({
   images,
   socialLinks,
   className = "",
+  onClick,
 }: FoundationCardProps) => {
+  // Handle navigation to foundation detail page
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    }
+  };
+
   return (
-    <div className={` overflow-hidden p-6 ${className}`}>
+    <div className={`overflow-hidden p-6 ${className}`}>
 
       {/* Foundation Details */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 ">
-        <div className="bg-white rounded-3xl shadow-md">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Link href={`/foundation/${id}`} className="block">
+          <div className="bg-white rounded-3xl shadow-md hover:shadow-lg transition-shadow cursor-pointer" onClick={handleCardClick}>
           <div className="flex flex-col md:flex-row gap-4  ">
             {/* Logo and Foundation Info */}
             <div className="flex items-start gap-4 bg-[#FFF8E9] p-4 rounded-3xl border  border-rose-700">
@@ -106,21 +118,24 @@ const FoundationCard = ({
 
           </div>
 
-        </div>
+          </div>
+        </Link>
 
         {/* Foundation Images */}
-        <div className="grid grid-cols-2 gap-2">
-          {images.slice(0, 4).map((image, index) => (
-            <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-              <Image
-                src={image}
-                alt={`${name} image ${index + 1}`}
-                fill
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
+        <Link href={`/foundation/${id}`} className="block">
+          <div className="grid grid-cols-2 gap-2 cursor-pointer">
+            {images.slice(0, 4).map((image, index) => (
+              <div key={index} className="relative aspect-square rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
+                <Image
+                  src={image}
+                  alt={`${name} image ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </Link>
       </div>
     </div>
   );

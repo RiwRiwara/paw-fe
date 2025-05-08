@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import api from "@/utils/api";
+import { FaHeart, FaRegHeart, FaSearch } from "react-icons/fa";
 
 interface Category {
   name: string;
@@ -14,6 +15,7 @@ interface Pet {
   age: string;
   gender: string;
   imageUrl: string;
+  isLiked?: boolean;
 }
 
 export default function Adopt() {
@@ -21,6 +23,8 @@ export default function Adopt() {
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [pets, setPets] = useState<Pet[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [filteredPets, setFilteredPets] = useState<Pet[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -37,7 +41,13 @@ export default function Adopt() {
         // Fetch all pets initially using getPetsByCategory without filters
         const petsResponse = await api.pet.getPetsByCategory();
         if (petsResponse.data.success) {
-          setPets(petsResponse.data.data);
+          // Add isLiked property to each pet
+          const petsWithLikeStatus = petsResponse.data.data.map((pet: Pet) => ({
+            ...pet,
+            isLiked: false
+          }));
+          setPets(petsWithLikeStatus);
+          setFilteredPets(petsWithLikeStatus);
         } else {
           console.error("Failed to load pets:", petsResponse.data.message);
         }
@@ -51,6 +61,7 @@ export default function Adopt() {
 
   const handleCategoryClick = async (categoryName: string) => {
     setSelectedCategory(categoryName);
+    setSearchQuery(""); // Reset search query when changing category
 
     try {
       let petsResponse;
@@ -69,7 +80,16 @@ export default function Adopt() {
       }
 
       if (petsResponse.data.success) {
-        setPets(petsResponse.data.data);
+        // Preserve like status when switching categories
+        const petsWithLikeStatus = petsResponse.data.data.map((newPet: Pet) => {
+          const existingPet = pets.find(p => p.petId === newPet.petId);
+          return {
+            ...newPet,
+            isLiked: existingPet ? existingPet.isLiked : false
+          };
+        });
+        setPets(petsWithLikeStatus);
+        setFilteredPets(petsWithLikeStatus);
       } else {
         console.error("Failed to load filtered pets:", petsResponse.data.message);
       }
@@ -77,6 +97,29 @@ export default function Adopt() {
       console.error("Error filtering pets:", error.response?.data?.message || error.message);
     }
   };
+
+  // Handle liking/unliking a pet
+  const toggleLike = (petId: number) => {
+    const updatedPets = pets.map(pet => 
+      pet.petId === petId ? { ...pet, isLiked: !pet.isLiked } : pet
+    );
+    setPets(updatedPets);
+    setFilteredPets(updatedPets.filter(pet => 
+      pet.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ));
+  };
+
+  // Handle search functionality
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredPets(pets);
+    } else {
+      const filtered = pets.filter(pet => 
+        pet.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredPets(filtered);
+    }
+  }, [searchQuery, pets]);
 
   const last_pets = pets.slice(0, 3);
 
@@ -125,6 +168,22 @@ export default function Adopt() {
         <div className="flex flex-row justify-center items-center">
           <Image src="/images/giveapet.png" alt="giveapet" width={450} height={100} />
         </div>
+        
+        {/* Search bar */}
+        <div className="flex justify-center items-center w-full max-w-md mx-auto mt-4">
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="ค้นหา..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 rounded-full border-2 border-yellow-500 focus:outline-none focus:border-orange-400"
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <FaSearch />
+            </div>
+          </div>
+        </div>
         <div className="flex flex-row justify-center gap-4">
           {categories.map((category) => (
             <a
@@ -141,12 +200,12 @@ export default function Adopt() {
           ))}
         </div>
         <div className="flex flex-row flex-wrap gap-8 justify-center my-6">
-          {pets.map(({ petId, name, age, gender, imageUrl }) => (
+          {filteredPets.map(({ petId, name, age, gender, imageUrl, isLiked }) => (
             <div
               key={petId}
               className="flex flex-col items-center text-center w-full max-w-sm border-2 border-yellow-700 shadow-lg rounded-3xl bg-white transition transform hover:scale-105 pb-4"
             >
-              <div className="flex items-center justify-center overflow-hidden rounded-lg">
+              <div className="flex items-center justify-center overflow-hidden rounded-lg relative">
                 <Image
                   src={imageUrl || "https://dummyimage.com/168x100.png/dddddd/000000"}
                   alt={name}
@@ -154,6 +213,16 @@ export default function Adopt() {
                   height={300}
                   className="object-cover"
                 />
+                <button 
+                  onClick={() => toggleLike(petId)} 
+                  className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:scale-110 transition-transform"
+                >
+                  {isLiked ? (
+                    <FaHeart className="text-red-500 text-xl" />
+                  ) : (
+                    <FaRegHeart className="text-gray-400 text-xl hover:text-red-500" />
+                  )}
+                </button>
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mt-3">{name}</h3>
               <div className="flex flex-row gap-2 mt-4">

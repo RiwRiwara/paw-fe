@@ -119,10 +119,11 @@ export default function Foundation() {
           {/* Foundation Cards */}
           <div className="grid grid-cols-1 gap-8 max-w-5xl mx-auto">
             <FoundationCard
+              id={1}
               logo="/images/landing/soid.png"
-              name="Lorem ipsum dolor sit amet"
-              description="Lorem ipsum dolor sit amet consectetur. Tempor ornare pretium ac donec"
-              phoneNumber="0000000000"
+              name="Soi Dog Foundation"
+              description="มูลนิธิเพื่อสุนัขในซอย กรุงเทพ"
+              phoneNumber="0812345678"
               images={[
                 "/images/foundation/s1.png",
                 "/images/foundation/s2.png",
@@ -131,16 +132,18 @@ export default function Foundation() {
               ]}
               socialLinks={{
                 facebook: "https://facebook.com/soidogfoundation",
-                instagram: "https://instagram.com/soidogfoundation"
+                instagram: "https://instagram.com/soidogfoundation",
+                website: "https://www.soidog.org"
               }}
               className="mb-8"
             />
 
             <FoundationCard
+              id={2}
               logo="/images/foundation/school-foundation.png"
-              name="Lorem ipsum dolor sit amet"
-              description="Lorem ipsum dolor sit amet consectetur. Tempor ornare pretium ac donec"
-              phoneNumber="0000000000"
+              name="Animal Foundation"
+              description="มูลนิธิช่วยเหลือสัตว์ กรุงเทพ"
+              phoneNumber="0987654321"
               images={[
                 "/images/foundation/s5.png",
                 "/images/foundation/s6.png",
@@ -149,7 +152,8 @@ export default function Foundation() {
               ]}
               socialLinks={{
                 facebook: "https://facebook.com/schoolfoundation",
-                instagram: "https://instagram.com/schoolfoundation"
+                instagram: "https://instagram.com/schoolfoundation",
+                website: "https://www.animalfoundation.org"
               }}
             />
           </div>
