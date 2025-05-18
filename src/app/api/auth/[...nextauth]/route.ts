@@ -72,15 +72,20 @@ export const authOptions: NextAuthOptions = {
                     console.log("Login response:", responseData);
 
                     if (responseData.success && responseData.data) {
-                        // Check if response has user details and token
+                        // Handle the new response format
                         let token: string;
                         let userDetails: Record<string, any> = {};
 
-                        if (typeof responseData.data === 'string') {
-                            // Just a token string
+                        // New format: { userMetadata, token }
+                        if (responseData.data.userMetadata && responseData.data.token) {
+                            token = responseData.data.token;
+                            userDetails = responseData.data.userMetadata as Record<string, any>;
+                            console.log("New login format detected, userMetadata:", userDetails);
+                        }
+                        // Fallback for old format or any other structures
+                        else if (typeof responseData.data === 'string') {
                             token = responseData.data;
                         } else {
-                            // Object with token and possibly user details
                             token = responseData.data.accessToken || responseData.data.token || responseData.data;
                             
                             if (responseData.data.user) {
@@ -89,12 +94,16 @@ export const authOptions: NextAuthOptions = {
                         }
                           
                         return {
-                            id: credentials.email, // Use email as stable ID
+                            id: userDetails?.userId?.toString() || credentials.email, // Use userId if available
                             email: credentials.email,
                             name: userDetails?.firstname ? `${String(userDetails.firstname)} ${String(userDetails.lastname || '')}` : undefined,
                             image: userDetails?.imageUrl as string | undefined,
                             token: token, // This will be used in the JWT callback
-                            ...userDetails, // Spread any additional user details
+                            firstname: userDetails?.firstname,
+                            lastname: userDetails?.lastname,
+                            userType: userDetails?.userType,
+                            userId: userDetails?.userId,
+                            // Add any other properties you need
                         };
                     } else {
                         throw new Error(responseData.message || "Login failed");

@@ -171,6 +171,7 @@ interface UserMetadata {
     firstname: string;
     lastname: string;
     imageUrl?: string;
+    userType: string;
 }
 
 interface Category {
@@ -258,7 +259,7 @@ const api = {
         registerGeneral: (body: RegisterBody) => apiClient.post<InfoResponse<User>>("/auth/register/general", body),
         registerFoundation: (body: RegisterFoundationBody) => apiClient.post<InfoResponse<User>>("/auth/register/foundation", body),
         registerAdmin: (body: RegisterAdminBody) => apiClient.post<InfoResponse<User>>("/auth/register/admin", body),
-        login: (body: LoginBody) => apiClient.post<{ accessToken: string; user: User }>("/auth/login", body),
+        login: (body: LoginBody) => apiClient.post<InfoResponse<{ userMetadata: UserMetadata; token: string }>>("/auth/login", body),
         logout: () => apiClient.post<InfoResponse<string>>("/auth/logout"),
         forgetPassword: (body: ForgetPasswordBody) => apiClient.post<InfoResponse<string>>("/auth/forget-password", body),
     },
