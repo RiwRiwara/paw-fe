@@ -14,10 +14,39 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor to attach JWT token
 apiClient.interceptors.request.use(
     async (config) => {
-        const session = await getSession();
-        const token = session?.accessToken;
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        try {
+            const session = await getSession();
+            const token = session?.accessToken;
+
+            // Debug token details
+            console.debug("API Request:", {
+                url: config.url,
+                hasToken: !!token,
+                tokenLength: token ? token.length : 0,
+                tokenPreview: token ? `${token.substring(0, 5)}...` : null,
+                isValidJwt: token ? /^eyJ/.test(token) : false, // Basic JWT format check
+            });
+
+            if (token) {
+                // The backend expects the token in a cookie named 'login', not in the Authorization header
+                // We'll set it both ways to be safe
+                
+                // Set cookie for this request
+                // Note: This will only work for same-origin requests
+                document.cookie = `login=${token}; path=/`;
+                
+                // Also retain the Authorization header as fallback
+                config.headers.Authorization = `Bearer ${token}`;
+                
+                // Set withCredentials to true to ensure cookies are sent with the request
+                config.withCredentials = true;
+                
+                console.debug("Auth cookie and header set for request");
+            } else {
+                console.warn("No authentication token available for request to:", config.url);
+            }
+        } catch (error) {
+            console.error("Error setting auth token:", error);
         }
         return config;
     },
@@ -29,7 +58,9 @@ apiClient.interceptors.response.use(
     (response: AxiosResponse) => response,
     (error) => {
         if (error.response?.status === 401) {
-            window.location.href = "/login";
+            console.warn("401 Unauthorized received for:", error.config.url);
+            // Let the component handle 401 errors
+            return Promise.reject(error);
         }
         return Promise.reject(error);
     }
@@ -62,6 +93,16 @@ interface RegisterBody {
     lastname: string;
     password: string;
     phoneNumber: string;
+}
+
+interface RegisterFoundationBody extends RegisterBody {
+    foundationName: string;
+    address: string;
+    bio?: string;
+}
+
+interface RegisterAdminBody extends RegisterBody {
+    adminKey: string;
 }
 
 interface ForgetPasswordBody {
@@ -111,7 +152,7 @@ interface User {
     userType: "General" | "Foundation" | "Admin";
 }
 
-interface UserInfo {
+export interface UserInfo {
     userId: number;
     age?: number;
     bio?: string;
@@ -137,49 +178,6 @@ interface Category {
     name: string;
 }
 
-interface NewsListResponse {
-    newsId: number;
-    title: string;
-    content: string;
-}
-
-interface GetPetsResponse {
-    petId: number;
-    name: string;
-    age: string;
-    gender: "MainPage" | "Female" | "Male";
-    imageUrl: string;
-}
-
-interface GetPetResponse {
-    petId: number;
-    name: string;
-    age: string;
-    gender: "MainPage" | "Female" | "Male";
-    imageUrl: string;
-    weight: number;
-    allergic: string;
-    foodAllergy: string;
-    vaccination: string;
-    sterilization: boolean;
-    status: "Available" | "PendingApplication" | "InReview" | "ApprovedAdoption" | "RejectedAdoption" | "Adopted";
-    foundationName: string;
-    foundationAddress: string;
-    aggressiveness: number;
-    playful: number;
-    sociable: number;
-    other?: string;
-}
-
-interface GetUserAdoptReqResponse {
-    petId: number;
-    name: string;
-    age: string;
-    gender: "MainPage" | "Female" | "Male";
-    imageUrl: string;
-    status: "Available" | "PendingApplication" | "InReview" | "ApprovedAdoption" | "RejectedAdoption" | "Adopted";
-}
-
 interface FoundationInfo {
     foundationName: string;
     address: string;
@@ -192,49 +190,109 @@ interface UploadResponse {
     imageUrl: string;
 }
 
-interface CampaignResponse {
+export interface Pet {
+    petId: number;
+    name: string;
+    age: string;
+    gender: string;
+    imageUrl: string;
+    weight: number;
+    allergic: string;
+    foodAllergy: string;
+    vaccination: string;
+    sterilization: boolean;
+    status: string;
+    foundationName: string;
+    foundationAddress: string;
+    active: number;
+    spaceRequired: number;
+    petFriendly: number;
+    specialCareNeed: number;
+    Other?: string | null;
+    species?: string;
+    breed?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+interface AdoptionRequest {
+    requestId: number;
+    petId: number;
+    userId: number;
+    status: "PENDING" | "APPROVED" | "REJECTED" | "COMPLETED";
+    createdAt: string;
+    updatedAt: string;
+    pet?: Pet;
+    user?: UserMetadata;
+}
+
+interface News {
+    newsId: number;
+    title: string;
+    content: string;
+    imageUrl?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Campaign {
+    campaignId: number;
     campaignName: string;
     description: string;
-    foundationId: number;
-    foundationLogo: string;
-    foundationName: string;
     goalAmount: number;
-    raisedAmount: number;
+    currentAmount: number;
+    startDate: string;
+    endDate: string;
+    status: "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
+    foundationId: number;
+    foundationName: string;
+    foundationLogo: string;
+    imageUrl: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 // API methods
 const api = {
     auth: {
-        register: (body: RegisterBody) => apiClient.post<InfoResponse<User>>("/auth/register", body),
-        login: (body: LoginBody) => apiClient.post<InfoResponse<string>>("/auth/login", body),
+        registerGeneral: (body: RegisterBody) => apiClient.post<InfoResponse<User>>("/auth/register/general", body),
+        registerFoundation: (body: RegisterFoundationBody) => apiClient.post<InfoResponse<User>>("/auth/register/foundation", body),
+        registerAdmin: (body: RegisterAdminBody) => apiClient.post<InfoResponse<User>>("/auth/register/admin", body),
+        login: (body: LoginBody) => apiClient.post<{ accessToken: string; user: User }>("/auth/login", body),
         logout: () => apiClient.post<InfoResponse<string>>("/auth/logout"),
         forgetPassword: (body: ForgetPasswordBody) => apiClient.post<InfoResponse<string>>("/auth/forget-password", body),
     },
     pet: {
         getCategories: () => apiClient.get<InfoResponse<Category[]>>("/categories"),
-        createPet: (body: AddPetBody) => apiClient.post<InfoResponse<UserMetadata[]>>("/pet", body),
-        getPetsByCategory: (foundationId?: number, species?: "หมา" | "แมว") =>
-            apiClient.get<InfoResponse<GetPetsResponse[]>>("/pet/list", { params: { foundationId, species } }),
-        getPetProfile: (petId: number) => apiClient.get<InfoResponse<GetPetResponse>>(`/pet/${petId}/info`),
-        getPetAdoptReq: (petId: number) => apiClient.get<InfoResponse<UserMetadata[]>>(`/pet/${petId}/adoption-request`),
+        createPet: (body: AddPetBody) => apiClient.post<InfoResponse<Pet>>("/pet", body),
+        getPetsByCategory: (foundationId?: number, species?: string) =>
+            apiClient.get<InfoResponse<Pet[]>>("/pet/list", { params: { foundationId, species } }),
+        getPetProfile: (petId: number) => apiClient.get<InfoResponse<Pet>>(`/pet/${petId}/info`),
+        getPetAdoptionRequests: (petId: number) => apiClient.get<InfoResponse<AdoptionRequest[]>>(`/pet/${petId}/adoption-request`),
     },
-    user: {
-        getNews: () => apiClient.get<InfoResponse<NewsListResponse[]>>("/news"),
-        getCampaign: () => apiClient.get<InfoResponse<CampaignResponse[]>>("/campaign"),
-        uploadImage: (file: File) => {
+    news: {
+        getList: () => apiClient.get<InfoResponse<News[]>>("/news"),
+    },
+    campaign: {
+        getList: () => apiClient.get<InfoResponse<Campaign[]>>("/campaign"),
+    },
+    upload: {
+        image: (file: File) => {
             const formData = new FormData();
             formData.append("file", file);
             return apiClient.post<InfoResponse<UploadResponse>>("/upload", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
         },
-        updateUserInfo: (body: UpdateUserBody) => apiClient.patch<InfoResponse<string>>("/user", body),
-        requestAdopt: (body: AdoptRequestBody) => apiClient.post<InfoResponse<string>>("/user/adopt", body),
-        getUserAdoptionRequest: () => apiClient.get<InfoResponse<GetUserAdoptReqResponse[]>>("/user/adoption-request"),
+    },
+    user: {
+        updateInfo: (body: UpdateUserBody) => apiClient.patch<InfoResponse<User>>("/user", body),
+        getInfo: () => apiClient.get<InfoResponse<UserInfo>>("/user/info"),
+        getMetadata: () => apiClient.get<InfoResponse<UserMetadata>>("/user/metadata"),
+        requestAdoption: (body: AdoptRequestBody) => apiClient.post<InfoResponse<AdoptionRequest>>("/user/adopt", body),
+        getAdoptionRequests: () => apiClient.get<InfoResponse<AdoptionRequest[]>>("/user/adoption-request"),
         getFoundationInfo: () => apiClient.get<InfoResponse<FoundationInfo>>("/user/foundation/info"),
-        getFoundationPets: () => apiClient.get<InfoResponse<GetPetsResponse[]>>("/user/foundation/pets"),
-        getUserInfo: () => apiClient.get<InfoResponse<UserInfo>>("/user/info"),
-        getUserMetadata: () => apiClient.get<InfoResponse<UserMetadata>>("/user/metadata"),
+        getFoundationPets: () => apiClient.get<InfoResponse<Pet[]>>("/user/foundation/pets"),
     },
 };
 

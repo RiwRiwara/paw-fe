@@ -1,9 +1,53 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
+import { JWT } from "next-auth/jwt";
 
-// Base URL for your backend API (from config.yaml)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api"; 
+// Define types to improve type safety
+type BackendResponse = {
+  success: boolean;
+  data: any;
+  message?: string;
+  code?: number;
+};
+
+// Define custom User type for NextAuth
+interface ExtendedUser {
+  id: string;
+  email: string;
+  firstname?: string;
+  lastname?: string;
+  userType?: string;
+  token?: string;
+  image?: string;
+}
+
+// Override NextAuth User type
+declare module "next-auth" {
+  interface User extends ExtendedUser {}
+}
+
+// Extend the built-in session type
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+    user: User;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string;
+    userDetails?: {
+      firstname?: string;
+      lastname?: string;
+      userType?: string;
+    };
+  }
+}
+
+// Base URL for your backend API
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -24,16 +68,36 @@ export const authOptions: NextAuthOptions = {
                         password: credentials.password,
                     });
 
-                    const { success, data, message } = response.data;
+                    const responseData = response.data as BackendResponse;
+                    console.log("Login response:", responseData);
 
-                    if (success && data) {
+                    if (responseData.success && responseData.data) {
+                        // Check if response has user details and token
+                        let token: string;
+                        let userDetails: Record<string, any> = {};
+
+                        if (typeof responseData.data === 'string') {
+                            // Just a token string
+                            token = responseData.data;
+                        } else {
+                            // Object with token and possibly user details
+                            token = responseData.data.accessToken || responseData.data.token || responseData.data;
+                            
+                            if (responseData.data.user) {
+                                userDetails = responseData.data.user as Record<string, any>;
+                            }
+                        }
+                          
                         return {
-                            id: data, // JWT token as the user ID
+                            id: credentials.email, // Use email as stable ID
                             email: credentials.email,
-                            token: data, // Custom token field
+                            name: userDetails?.firstname ? `${String(userDetails.firstname)} ${String(userDetails.lastname || '')}` : undefined,
+                            image: userDetails?.imageUrl as string | undefined,
+                            token: token, // This will be used in the JWT callback
+                            ...userDetails, // Spread any additional user details
                         };
                     } else {
-                        throw new Error(message || "Login failed");
+                        throw new Error(responseData.message || "Login failed");
                     }
                 } catch (error: any) {
                     console.error("Authentication error:", error.message);
@@ -46,18 +110,51 @@ export const authOptions: NextAuthOptions = {
         signIn: "/login",
     },
     callbacks: {
-        async jwt({ token, user }) {
-            if (user?.token) {
-                token.accessToken = user.token; // Assign the token to accessToken
+        async jwt({ token, user, trigger, session }) {
+            // Initial sign in
+            if (user) {
+                token.accessToken = user.token;
+                token.userDetails = {
+                    firstname: user.firstname,
+                    lastname: user.lastname,
+                    userType: user.userType,
+                };
             }
+            
+            // Handle session update
+            if (trigger === "update" && session) {
+                if (session.accessToken) {
+                    token.accessToken = session.accessToken;
+                }
+                if (session.user) {
+                    token.userDetails = {
+                        ...token.userDetails,
+                        ...(session.user as any),
+                    };
+                }
+            }
+            
             return token;
         },
         async session({ session, token }) {
             if (token.accessToken) {
-                session.accessToken = token.accessToken; // Assign accessToken to session
+                session.accessToken = token.accessToken;
             }
+            
+            // Enrich the user object in the session
+            if (token.userDetails) {
+                session.user = {
+                    ...session.user,
+                    ...token.userDetails,
+                };
+            }
+            
             return session;
         },
+    },
+    session: {
+        strategy: "jwt",
+        maxAge: 24 * 60 * 60, // 24 hours
     },
     secret: process.env.NEXTAUTH_SECRET,
 };

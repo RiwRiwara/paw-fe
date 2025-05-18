@@ -2,19 +2,9 @@
 import Image from "next/image";
 import { useEffect, useState } from 'react';
 import CampaignCard from "@/components/common/CampaignCard";
-import FoundationCard from "@/components/common/FoundationCard";
-import api from "@/utils/api";
+import api, { Campaign } from "@/utils/api";
 import Slider from 'react-slick';
 
-interface Campaign {
-  campaignName: string;
-  description: string;
-  foundationId: number;
-  foundationName: string;
-  foundationLogo: string;
-  goalAmount: number;
-  raisedAmount: number;
-}
 
 export default function Home() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -22,7 +12,8 @@ export default function Home() {
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const response = await api.user.getCampaign();
+        const response = await api.campaign.getList();
+        console.log(response.data);
         if (response.data.success) {
           setCampaigns(response.data.data);
         }
@@ -34,27 +25,27 @@ export default function Home() {
     fetchCampaigns();
   }, []);
 
-    // Carousel settings
-    const carouselSettings = {
-      dots: true, // Show navigation dots
-      infinite: true, // Loop the carousel
-      speed: 500, // Transition speed in ms
-      slidesToShow: 1, // Show one campaign at a time
-      slidesToScroll: 1, // Scroll one campaign at a time
-      autoplay: true, // Auto-play the carousel
-      autoplaySpeed: 3000, // 3 seconds per slide
-      arrows: true, // Show next/prev arrows
-      responsive: [
-        {
-          breakpoint: 768, // Adjust for smaller screens
-          settings: {
-            slidesToShow: 1,
-            slidesToScroll: 1,
-            arrows: false, // Hide arrows on mobile for simplicity
-          },
+  // Carousel settings
+  const carouselSettings = {
+    dots: true, // Show navigation dots
+    infinite: true, // Loop the carousel
+    speed: 500, // Transition speed in ms
+    slidesToShow: 1, // Show one campaign at a time
+    slidesToScroll: 1, // Scroll one campaign at a time
+    autoplay: true, // Auto-play the carousel
+    autoplaySpeed: 3000, // 3 seconds per slide
+    arrows: true, // Show next/prev arrows
+    responsive: [
+      {
+        breakpoint: 768, // Adjust for smaller screens
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          arrows: false, // Hide arrows on mobile for simplicity
         },
-      ],
-    };
+      },
+    ],
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -206,7 +197,7 @@ export default function Home() {
                 title={campaign.campaignName}
                 description={campaign.description}
                 donationLabel="Donate"
-                donationAmount={campaign.raisedAmount.toString()}
+                donationAmount={campaign.currentAmount.toString()}
                 donationGoal={campaign.goalAmount.toString()}
                 campaignImage="/images/landing/camp2.png" // Replace with dynamic image if available
                 rightSideImage="/images/landing/new5.png" // Replace with dynamic image if available

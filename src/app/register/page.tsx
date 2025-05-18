@@ -34,7 +34,7 @@ const RegisterPage: React.FC = () => {
         setError("");
 
         try {
-            const response = await api.auth.register(formData);
+            const response = await api.auth.registerGeneral(formData);
             if (response.data.success) {
                 router.push("/login"); // Redirect to login after successful registration
             } else {

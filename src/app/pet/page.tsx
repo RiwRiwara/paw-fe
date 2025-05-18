@@ -3,33 +3,14 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import api from "@/utils/api";
-
-interface PetData {
-  petId: number;
-  name: string;
-  age: string;
-  gender: string;
-  imageUrl: string;
-  status: string;
-  weight: number;
-  sterilization: boolean;
-  vaccination: string;
-  foodAllergy: string | null;
-  allergic: string | null;
-  other: string | null;
-  sociable: number;
-  playful: number;
-  aggressiveness: number;
-  foundationName: string;
-  foundationAddress: string;
-}
+import type { Pet } from "@/utils/api";
 
 export default function Pet() {
   const searchParams = useSearchParams();
   const petId = searchParams.get("petId");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [pet, setPet] = useState<PetData | null>(null);
+  const [pet, setPet] = useState<Pet | null>(null);
 
   useEffect(() => {
     async function fetchPetData() {
@@ -41,8 +22,9 @@ export default function Pet() {
 
       try {
         const response = await api.pet.getPetProfile(parseInt(petId));
+        console.log(response.data);
         if (response.data.success) {
-          setPet(response.data.data as PetData);
+          setPet(response.data.data);
         } else {
           setError(response.data.message || "Pet not found.");
         }
@@ -97,9 +79,10 @@ export default function Pet() {
             </h2>
             <div className="space-y-4">
               {[
-                { label: "ติดคน", value: pet.sociable },
-                { label: "ความขี้เล่น", value: pet.playful },
-                { label: "ความดุ", value: pet.aggressiveness },
+                { label: "ระดับกิจกรรม", value: pet.active },
+                { label: "เป็นมิตรกับสัตว์อื่น", value: pet.petFriendly },
+                { label: "พื้นที่ที่ต้องการ", value: pet.spaceRequired },
+                { label: "ต้องการการดูแลพิเศษ", value: pet.specialCareNeed },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between">
                   <span className="text-orange-800 font-medium">{item.label} :</span>
@@ -125,7 +108,7 @@ export default function Pet() {
                 { label: "ฉีดวัคซีน", value: pet.vaccination },
                 { label: "แพ้อาหาร", value: pet.foodAllergy || "ไม่มี" },
                 { label: "แพ้ยา", value: pet.allergic || "ไม่มี" },
-                { label: "อื่น ๆ", value: pet.other || "ไม่มี" },
+                { label: "อื่น ๆ", value: pet.Other || "ไม่มี" },
               ].map((item) => (
                 <div key={item.label} className="flex flex-col gap-1">
                   <div className="text-primary-red font-medium text-nowrap">{item.label} :</div>
@@ -160,7 +143,7 @@ export default function Pet() {
         {/* Adoption Button */}
         <div className="flex justify-center">
           <a
-            href="/pet_get"
+            href={`/pet_get?petId=${pet.petId}`}
             className="bg-[#A53E55] text-white px-8 py-3 rounded-xl text-3xl font-semibold 
             hover:bg-[#8e3448] transition-colors duration-300 shadow-md"
           >

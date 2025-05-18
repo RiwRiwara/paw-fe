@@ -3,32 +3,19 @@ import { useEffect, useState } from 'react';
 import CampaignCard from "@/components/common/CampaignCard";
 import FoundationCard from "@/components/common/FoundationCard";
 import Image from "next/image";
-import api from "@/utils/api";
+import api, { Campaign } from "@/utils/api";
 import Slider from 'react-slick';
 
-// Define the Campaign interface
-interface Campaign {
-  campaignName: string;
-  description: string;
-  foundationId: number;
-  foundationName: string;
-  foundationLogo: string;
-  goalAmount: number;
-  raisedAmount: number;
-}
 
 export default function Foundation() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
     const fetchCampaigns = async () => {
-      try {
-        const response = await api.user.getCampaign();
-        if (response.data.success) {
-          setCampaigns(response.data.data);
-        }
-      } catch (error) {
-        console.error('Error fetching campaigns:', error);
+
+      const response = await api.campaign.getList();
+      if (response.data.success) {
+        setCampaigns(response.data.data);
       }
     };
 
