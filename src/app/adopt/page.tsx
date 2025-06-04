@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import api from "@/utils/api";
-import { FaHeart, FaRegHeart, FaSearch } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaSearch, FaExclamationTriangle } from "react-icons/fa";
 
 interface Category {
   name: string;
@@ -18,6 +19,16 @@ interface Pet {
   isLiked?: boolean;
 }
 
+interface PetMetadata {
+  petId: number;
+  name: string;
+  age: string;
+  gender: string;
+  imageUrl: string;
+  rank?: number;
+  totalScore?: number;
+}
+
 export default function Adopt() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
@@ -25,6 +36,29 @@ export default function Adopt() {
   const [pets, setPets] = useState<Pet[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filteredPets, setFilteredPets] = useState<Pet[]>([]);
+  const [suggestedPets, setSuggestedPets] = useState<PetMetadata[]>([]);
+  const [personalityError, setPersonalityError] = useState<string | null>(null);
+
+  // Fetch suggested pets based on personality questions
+  const fetchSuggestedPets = async () => {
+    try {
+      setPersonalityError(null);
+      const suggestResponse = await api.pet.getPetSuggest();
+
+      if (suggestResponse.data.success) {
+        setSuggestedPets(suggestResponse.data.data);
+      } else {
+        if (suggestResponse.data.message === "please complete personality question first") {
+          setPersonalityError("please complete personality question first");
+        }
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message;
+      if (errorMessage.includes("please complete personality question first")) {
+        setPersonalityError("please complete personality question first");
+      }
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -51,6 +85,9 @@ export default function Adopt() {
         } else {
           console.error("Failed to load pets:", petsResponse.data.message);
         }
+
+        // Fetch suggested pets
+        await fetchSuggestedPets();
       } catch (error: any) {
         console.error("Error fetching data:", error.response?.data?.message || error.message);
       }
@@ -81,7 +118,7 @@ export default function Adopt() {
 
       if (petsResponse.data.success) {
         // Preserve like status when switching categories
-        const petsWithLikeStatus = petsResponse.data.data.map((newPet: Pet) => {
+        const petsWithLikeStatus = petsResponse.data.data.map((newPet: PaliativePet) => {
           const existingPet = pets.find(p => p.petId === newPet.petId);
           return {
             ...newPet,
@@ -100,11 +137,11 @@ export default function Adopt() {
 
   // Handle liking/unliking a pet
   const toggleLike = (petId: number) => {
-    const updatedPets = pets.map(pet => 
+    const updatedPets = pets.map(pet =>
       pet.petId === petId ? { ...pet, isLiked: !pet.isLiked } : pet
     );
     setPets(updatedPets);
-    setFilteredPets(updatedPets.filter(pet => 
+    setFilteredPets(updatedPets.filter(pet =>
       pet.name.toLowerCase().includes(searchQuery.toLowerCase())
     ));
   };
@@ -114,7 +151,7 @@ export default function Adopt() {
     if (searchQuery.trim() === "") {
       setFilteredPets(pets);
     } else {
-      const filtered = pets.filter(pet => 
+      const filtered = pets.filter(pet =>
         pet.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredPets(filtered);
@@ -132,43 +169,71 @@ export default function Adopt() {
         <div className="flex flex-row justify-center items-center">
           <Image src="/images/adopt/adoptext.png" alt="adopt" width={450} height={100} />
         </div>
-
-        <div className="flex flex-row flex-wrap gap-8 justify-center my-6">
-          {last_pets.map(({ petId, name, age, gender, imageUrl }) => (
-            <div
-              key={petId}
-              className="flex flex-col items-center text-center w-full max-w-sm shadow-lg rounded-2xl bg-white transition transform hover:scale-105 pb-4"
-            >
-              <div className="flex items-center justify-center overflow-hidden rounded-lg m-4">
-                <Image
-                  src={imageUrl || "https://dummyimage.com/168x100.png/dddddd/000000"}
-                  alt={name}
-                  width={400}
-                  height={250}
-                  className="object-cover rounded-full border-2 border-yellow-700"
-                />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-700 mt-3">{name}</h3>
-              <div className="flex flex-row gap-2 mt-4">
-                <div className="text-gray-500">{age}</div>
-                <div className="text-gray-500">{gender}</div>
-              </div>
-              <a
-                href={`/pet/?petId=${petId}`}
-                className="mt-4 bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400"
-              >
-                Read More
-              </a>
+        {personalityError ? (
+          <div className="bg-amber-50 border border-amber-400 text-amber-800 p-4 rounded-lg my-6 max-w-2xl mx-auto">
+            <div className="flex items-center gap-3 mb-2">
+              <FaExclamationTriangle className="text-amber-500" />
+              <h3 className="font-medium">Personality Quiz Required</h3>
             </div>
-          ))}
-        </div>
+            <Link
+              href="/personality-quiz"
+              className="inline-block bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400 font-semibold hover:text-white hover:bg-orange-400"
+            >
+              Take Personality Quiz
+            </Link>
+          </div>
+        ) : suggestedPets.length > 0 ? (
+          <div className="flex flex-row flex-wrap gap-8 justify-center my-6">
+            {suggestedPets.map(({ petId, name, age, gender, imageUrl }) => (
+              <div
+                key={petId}
+                className="flex flex-col items-center text-center w-full max-w-sm shadow-lg rounded-2xl bg-white transition transform hover:scale-105 pb-4 border-2 border-amber-500"
+              >
+                <div className="flex items-center justify-center overflow-hidden rounded-lg m-4">
+                  <Image
+                    src={imageUrl || "https://placehold.co/400x250?text=Pet"}
+                    alt={name}
+                    width={400}
+                    height={250}
+                    className="object-cover rounded-full border-2 border-yellow-700"
+                  />
+                </div>
+                <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs mb-2 font-semibold">Recommended Match</div>
+                <h3 className="text-xl font-semibold text-gray-700">{name}</h3>
+                <div className="flex flex-row gap-2 mt-2">
+                  <div className="text-gray-500">{age}</div>
+                  <div className="text-gray-500">{gender}</div>
+                </div>
+                <Link
+                  href={`/pet/?petId=${petId}`}
+                  className="mt-4 bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400 hover:text-white hover:bg-orange-400 font-medium"
+                >
+                  View Profile
+                </Link>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-amber-50 border border-amber-400 text-amber-800 p-4 rounded-lg my-6 max-w-2xl mx-auto">
+            <div className="flex items-center gap-3 mb-2">
+              <FaExclamationTriangle className="text-amber-500" />
+              <h3 className="font-medium">Personality Quiz Required</h3>
+            </div>
+            <Link
+              href="/personality-quiz"
+              className="inline-block bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400 font-semibold hover:text-white hover:bg-orange-400"
+            >
+              Take Personality Quiz
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-4 container mx-auto">
         <div className="flex flex-row justify-center items-center">
           <Image src="/images/giveapet.png" alt="giveapet" width={450} height={100} />
         </div>
-        
+
         {/* Search bar */}
         <div className="flex justify-center items-center w-full max-w-md mx-auto mt-4">
           <div className="relative w-full">
@@ -213,8 +278,8 @@ export default function Adopt() {
                   height={300}
                   className="object-cover"
                 />
-                <button 
-                  onClick={() => toggleLike(petId)} 
+                <button
+                  onClick={() => toggleLike(petId)}
                   className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:scale-110 transition-transform"
                 >
                   {isLiked ? (

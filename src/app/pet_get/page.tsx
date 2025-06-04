@@ -17,7 +17,7 @@ export default function PetAdoptionRequest() {
   const [pet, setPet] = useState<Pet | null>(null);
   const [loadingPet, setLoadingPet] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
-  
+
   // Enhanced form with proper default values
   const [formData, setFormData] = useState({
     firstname: user?.firstname || "",
@@ -54,7 +54,7 @@ export default function PetAdoptionRequest() {
         }
       }
     }
-    
+
     fetchUserData();
   }, [isAuthenticated, user]);
 
@@ -96,7 +96,7 @@ export default function PetAdoptionRequest() {
 
     fetchPetData();
   }, [petId, router]);
-  
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -112,11 +112,11 @@ export default function PetAdoptionRequest() {
 
     try {
       setIsSubmitting(true);
-      
+
       // First update the user profile with the latest information
       // The backend expects all fields as pointers, so we need to convert our values
       const profilePayload: any = {};
-      
+
       // Only include fields that have values
       if (formData.firstname) profilePayload.firstname = formData.firstname;
       if (formData.lastname) profilePayload.lastname = formData.lastname;
@@ -124,7 +124,7 @@ export default function PetAdoptionRequest() {
       if (formData.phoneNumber) profilePayload.phoneNumber = formData.phoneNumber;
       if (formData.province) profilePayload.province = formData.province;
       if (formData.occupation) profilePayload.occupation = formData.occupation;
-      
+
       // Handle number conversion properly
       if (formData.numOfPets) {
         const numPets = parseInt(formData.numOfPets);
@@ -134,11 +134,6 @@ export default function PetAdoptionRequest() {
       }
 
       try {
-        // Submit user profile update
-        console.log('Sending profile update:', profilePayload);
-        await api.user.updateInfo(profilePayload);
-        console.log('Profile update successful');
-        
         // Then submit the adoption request
         const adoptionPayload = {
           petId: parseInt(petId),
@@ -147,7 +142,7 @@ export default function PetAdoptionRequest() {
 
         console.log('Sending adoption request:', adoptionPayload);
         const adoptionResponse = await api.user.requestAdoption(adoptionPayload);
-        
+
         if (adoptionResponse.data.success) {
           alert("ส่งคำขอรับเลี้ยงเรียบร้อยแล้ว ทางมูลนิธิจะติดต่อกลับมาเร็วๆ นี้");
           router.push("/profile");
@@ -163,7 +158,7 @@ export default function PetAdoptionRequest() {
         };
 
         const adoptionResponse = await api.user.requestAdoption(adoptionPayload);
-        
+
         if (adoptionResponse.data.success) {
           alert("ส่งคำขอรับเลี้ยงเรียบร้อยแล้ว ทางมูลนิธิจะติดต่อกลับมาเร็วๆ นี้");
           router.push("/profile");
@@ -208,7 +203,7 @@ export default function PetAdoptionRequest() {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50 p-4">
@@ -224,7 +219,7 @@ export default function PetAdoptionRequest() {
       </div>
     );
   }
-  
+
   if (!pet) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50 p-4">
@@ -252,21 +247,21 @@ export default function PetAdoptionRequest() {
           </div>
         </div>
       </div>
-      
+
       {/* Pet Card with enhanced styling */}
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-100">
           <div className="md:flex">
             {/* Pet Image Section */}
             <div className="md:w-1/3 relative h-64 md:h-auto">
-              <Image 
-                src={pet.imageUrl} 
-                alt={pet.name} 
+              <Image
+                src={pet.imageUrl}
+                alt={pet.name}
                 fill
                 className="object-cover"
               />
             </div>
-            
+
             {/* Pet Details Section */}
             <div className="p-6 md:w-2/3">
               <div className="flex justify-between items-start">
@@ -275,27 +270,27 @@ export default function PetAdoptionRequest() {
                   {pet.status === 'PENDING' ? 'รอการอนุมัติ' : pet.status === 'APPROVED' ? 'อนุมัติแล้ว' : pet.status}
                 </span>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div className="flex items-center gap-2">
-                  {pet.gender === "female" ? 
-                    <FaVenus className="text-pink-500" /> : 
+                  {pet.gender === "female" ?
+                    <FaVenus className="text-pink-500" /> :
                     <FaMars className="text-blue-500" />}
                   <span className="text-gray-700">
                     {pet.gender === "female" ? "เพศเมีย" : "เพศผู้"}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <FaPaw className="text-primary-400" />
                   <span className="text-gray-700">อายุ {pet.age}</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <FaMapMarkerAlt className="text-red-400" />
                   <span className="text-gray-700">{pet.foundationName}</span>
                 </div>
-                
+
                 {pet.foundationAddress && (
                   <div className="flex items-center gap-2">
                     <FaHome className="text-gray-400" />
@@ -303,7 +298,7 @@ export default function PetAdoptionRequest() {
                   </div>
                 )}
               </div>
-              
+
               {/* Additional pet details if available */}
               {(pet.allergic || pet.foodAllergy || pet.vaccination) && (
                 <div className="mt-6 pt-4 border-t border-gray-100">
@@ -347,7 +342,7 @@ export default function PetAdoptionRequest() {
                   required
                 />
               </div>
-              
+
               <div className="space-y-3">
                 <label className="text-lg font-medium text-gray-700 block">นามสกุล</label>
                 <input
@@ -359,7 +354,7 @@ export default function PetAdoptionRequest() {
                   required
                 />
               </div>
-              
+
               {/* Phone Number */}
               <div className="space-y-3">
                 <label className="text-lg font-medium text-gray-700 flex items-center">
@@ -375,7 +370,7 @@ export default function PetAdoptionRequest() {
                   required
                 />
               </div>
-              
+
               {/* Province */}
               <div className="space-y-3">
                 <label className="text-lg font-medium text-gray-700 flex items-center">
@@ -391,7 +386,7 @@ export default function PetAdoptionRequest() {
                 />
               </div>
             </div>
-            
+
             {/* Right column */}
             <div className="space-y-5">
               {/* Accommodation Type */}
@@ -413,7 +408,7 @@ export default function PetAdoptionRequest() {
                   <option value="ApartmentAndCondo">อพาร์ทเมนท์/คอนโด</option>
                 </select>
               </div>
-              
+
               {/* Number of Pets */}
               <div className="space-y-3">
                 <label className="text-lg font-medium text-gray-700 flex items-center">
@@ -429,7 +424,7 @@ export default function PetAdoptionRequest() {
                   className="border border-gray-200 bg-gray-50 text-gray-800 rounded-lg w-full px-4 py-3 focus:ring-2 focus:ring-primary-300 focus:border-primary-300 transition"
                 />
               </div>
-              
+
               {/* Occupation */}
               <div className="space-y-3">
                 <label className="text-lg font-medium text-gray-700 flex items-center">
@@ -445,7 +440,7 @@ export default function PetAdoptionRequest() {
                 />
               </div>
             </div>
-            
+
             {/* Full width fields */}
             <div className="md:col-span-2 space-y-3">
               <label className="text-lg font-medium text-gray-700">ข้อมูลเพิ่มเติม (ถ้ามี)</label>
@@ -456,7 +451,7 @@ export default function PetAdoptionRequest() {
                 className="border border-gray-200 bg-gray-50 text-gray-800 rounded-lg w-full px-4 py-3 min-h-[120px] focus:ring-2 focus:ring-primary-300 focus:border-primary-300 transition"
               />
             </div>
-            
+
             {/* Terms and Conditions */}
             <div className="md:col-span-2 mt-4 space-y-4">
               <div className="bg-primary-50 rounded-lg p-5 border border-primary-100">
@@ -481,7 +476,7 @@ export default function PetAdoptionRequest() {
                 </div>
               </div>
             </div>
-            
+
             {/* Submit Buttons */}
             <div className="md:col-span-2 flex justify-center gap-4 mt-6">
               <button

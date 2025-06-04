@@ -16,12 +16,17 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  type AdoptStatus = "Available" | "PendingApplication" | "InReview" | "ApprovedAdoption" | "RejectedAdoption" | "Adopted";
+  type Gender = "Female" | "Male";
+
   type PetInfo = {
-    id: number | string; // Support both numeric and string IDs
-    petName: string;
-    petImage: string;
+    petId: number;
+    name: string;
+    imageUrl: string;
     status: string;
-    date: string;
+    age: string; // Changed to string to match logged data and payload.GetPetsResponse
+    gender: Gender;
+    submissionDate: string;
     foundationName: string;
   };
 
@@ -60,7 +65,6 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    console.log("Authentication status:", { isAuthenticated, loading, sessionStatus: status, user });
 
     if (!loading && !isAuthenticated) {
       router.push("/login?callbackUrl=" + encodeURIComponent(window.location.href));
@@ -85,7 +89,6 @@ export default function Profile() {
       }
 
       const response = await api.user.getInfo();
-      console.log("User info response:", response.data);
 
       if (response.data.success) {
         const userInfo: UserInfo = response.data.data;
@@ -117,22 +120,25 @@ export default function Profile() {
       setError(null);
 
       const response = await api.user.getAdoptionRequests();
-      
+
       if (response.data.success) {
         if (!Array.isArray(response.data.data)) {
           console.error("Expected array for adoption requests but got:", typeof response.data.data);
           setError("Received unexpected data format from server");
           return;
         }
-        
-        const adoptionRequests: PetInfo[] = response.data.data.map((request) => ({
-          id: request.petId || Math.random().toString(36).substring(2, 9), 
-          petName: request.pet?.name || "Unknown Pet",
-          petImage: request.pet?.imageUrl || "https://placehold.co/50x50?text=pet",
-          status: formatStatus(request.status),
-          date: formatDate(request.submissionDate || ""),
-          foundationName: request.pet?.foundationName || "Unknown Foundation",
+        // Mapping function
+        const adoptionRequests: PetInfo[] = response.data.data.map((request: any) => ({
+          petId: request.petId || 0, // Use 0 as fallback instead of random string
+          name: request.name || "Unknown Pet",
+          imageUrl: request.imageUrl || "https://placehold.co/50x50?text=pet",
+          status: request.status || "Unknown",
+          age: request.age || "Unknown",
+          gender: (request.gender === "female" ? "Female" : request.gender === "male" ? "Male" : "Unknown") as Gender,
+          submissionDate: request.submissionDate || new Date().toISOString(), // Fallback to current date
+          foundationName: request.foundationName || "Unknown Foundation",
         }));
+
 
         setUserData((prev) => ({
           ...prev,
@@ -145,8 +151,8 @@ export default function Profile() {
     } catch (err: any) {
       console.error("Error fetching adoption requests:", err);
       setError(
-        err.response?.data?.message || 
-        err.message || 
+        err.response?.data?.message ||
+        err.message ||
         "An error occurred while loading your adoption requests"
       );
     } finally {
@@ -170,21 +176,7 @@ export default function Profile() {
     }
   };
 
-  const formatStatus = (status?: string) => {
-    if (!status) return "Unknown";
-    switch (status.toUpperCase()) {
-      case "PENDING":
-        return "Pending";
-      case "APPROVED":
-        return "Approved";
-      case "REJECTED":
-        return "Rejected";
-      case "COMPLETED":
-        return "Completed";
-      default:
-        return status;
-    }
-  };
+
 
   const getStatusColorClass = (status: string) => {
     switch (status) {
@@ -352,11 +344,11 @@ export default function Profile() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {userData.pets.map((pet) => (
-                  <div key={pet.id} className="flex items-center gap-4 p-3 rounded-xl border border-gray-200 hover:border-orange-200 transition-colors">
+                  <div key={pet.petId} className="flex items-center gap-4 p-3 rounded-xl border border-gray-200 hover:border-orange-200 transition-colors">
                     <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
                       <Image
-                        src={pet.petImage}
-                        alt={pet.petName}
+                        src={pet.imageUrl}
+                        alt={pet.name}
                         fill
                         sizes="(max-width: 64px) 100vw, 64px"
                         className="object-cover"
@@ -364,8 +356,8 @@ export default function Profile() {
                       />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-800">{pet.petName}</h3>
-                      <p className="text-sm text-gray-600">{pet.foundationName} · {pet.date}</p>
+                      <h3 className="font-bold text-gray-800">{pet.name}</h3>
+                      <p className="text-sm text-gray-600">{pet.foundationName} · {pet.submissionDate}</p>
                     </div>
                     <div className="ml-auto">
                       <button className="text-orange-400 hover:text-orange-500">
@@ -393,20 +385,20 @@ export default function Profile() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {userData.adoptionRequests.map((request) => (
-                        <tr key={`request-${request.id}`} className="hover:bg-gray-50 transition-colors duration-150">
-                          <td className="px-4 py-3 text-sm text-gray-800">{request.date}</td>
+                        <tr key={`request-${request.petId}`} className="hover:bg-gray-50 transition-colors duration-150">
+                          <td className="px-4 py-3 text-sm text-gray-800">{request.submissionDate}</td>
                           <td className="px-4 py-3 text-sm">
                             <div className="flex items-center">
                               <div className="h-8 w-8 flex-shrink-0 mr-3 overflow-hidden rounded-full">
                                 <Image
-                                  src={request.petImage}
+                                  src={request.imageUrl}
                                   width={32}
                                   height={32}
-                                  alt={request.petName}
+                                  alt={request.name}
                                   className="h-full w-full object-cover"
                                 />
                               </div>
-                              <span className="font-medium text-gray-800">{request.petName}</span>
+                              <span className="font-medium text-gray-800">{request.name}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-800">{request.foundationName}</td>
