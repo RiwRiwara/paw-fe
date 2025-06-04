@@ -3,7 +3,6 @@ import Image from "next/image";
 import { useEffect, useState } from 'react';
 import CampaignCard from "@/components/common/CampaignCard";
 import api, { Campaign } from "@/utils/api";
-import Slider from 'react-slick';
 
 
 export default function Home() {
@@ -25,32 +24,11 @@ export default function Home() {
     fetchCampaigns();
   }, []);
 
-  // Carousel settings
-  const carouselSettings = {
-    dots: true, // Show navigation dots
-    infinite: true, // Loop the carousel
-    speed: 500, // Transition speed in ms
-    slidesToShow: 1, // Show one campaign at a time
-    slidesToScroll: 1, // Scroll one campaign at a time
-    autoplay: true, // Auto-play the carousel
-    autoplaySpeed: 3000, // 3 seconds per slide
-    arrows: true, // Show next/prev arrows
-    responsive: [
-      {
-        breakpoint: 768, // Adjust for smaller screens
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          arrows: false, // Hide arrows on mobile for simplicity
-        },
-      },
-    ],
-  };
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Section 1 */}
-      <div className="bg-primary-50 flex flex-col items-center justify-center relative h-[900px] bg-[url('/img/mountains.jpg')] bg-cover bg-center">
+      {/* Section 1: Hero */}
+      <div className="bg-primary-50 flex flex-col items-center justify-center relative min-h-[800px] md:h-[900px] bg-[url('/img/mountains.jpg')] bg-cover bg-center overflow-hidden">
         {/* Logo */}
         <div className="relative w-[50px] sm:w-[300px] lg:w-[330px] h-[450px] sm:h-[200px] lg:h-[500px] z-30">
           <Image
@@ -100,16 +78,20 @@ export default function Home() {
       </div>
 
       {/* Section 2: News */}
-      <div className="bg-white flex flex-col items-center px-4 sm:px-6 lg:px-8 container mx-auto">
+      <div className="bg-white flex flex-col items-center px-4 sm:px-6 lg:px-8 container mx-auto py-12">
         {/* Header */}
-        <div className="relative w-3/4 sm:w-2/3 lg:w-1/2 aspect-[4/1]">
-          <Image
-            src="/images/landing/newstext.png"
-            alt="news_text"
-            fill
-            className="object-contain"
-            priority
-          />
+        <div className="text-center mb-8">
+          <div className="relative w-3/4 sm:w-2/3 lg:w-1/2 aspect-[4/1] mx-auto">
+            <Image
+              src="/images/landing/newstext.png"
+              alt="news_text"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div className="w-24 h-1 bg-primary-pink mx-auto mt-4 mb-6"></div>
+          <p className="text-primary-400 max-w-2xl mx-auto mb-8">Stay updated with the latest news and events about our animal rescue campaigns.</p>
         </div>
 
         {/* News Grid */}
@@ -189,32 +171,78 @@ export default function Home() {
 
 
       {/* Section 3: Campaign */}
-      <div className="container mx-auto px-4 py-8">
-        <Slider {...carouselSettings}>
-          {campaigns.map((campaign, index) => (
-            <div key={index} className="px-2">
+      <div className="container mx-auto px-4 py-12 bg-gray-50">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary-red mb-2">Current Campaigns</h2>
+          <div className="w-24 h-1 bg-primary-pink mx-auto mb-4"></div>
+          <p className="text-primary-400 max-w-2xl mx-auto">Support our ongoing campaigns and help make a difference in the lives of animals in need.</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {campaigns.length > 0 ? campaigns.map((campaign, index) => (
+            <div key={index} className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
               <CampaignCard
                 title={campaign.campaignName}
                 description={campaign.description}
                 donationLabel="Donate"
                 donationAmount={campaign.currentAmount.toString()}
                 donationGoal={campaign.goalAmount.toString()}
-                campaignImage="/images/landing/camp2.png" // Replace with dynamic image if available
-                rightSideImage="/images/landing/new5.png" // Replace with dynamic image if available
-                isNew={index === 0} // Mark first campaign as new
+                campaignImage="/images/landing/camp2.png"
+                rightSideImage="/images/landing/new5.png"
+                isNew={index === 0}
                 foundationName={campaign.foundationName}
                 foundationSubtitle={campaign.description}
                 foundationLogo={campaign.foundationLogo}
               />
             </div>
-          ))}
-        </Slider>
+          )) : (
+            <div className="col-span-full text-center py-10">
+              <div className="animate-pulse bg-primary-softpink rounded-lg p-8 max-w-md mx-auto">
+                <p className="text-primary-red font-medium">Loading campaigns...</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {campaigns.length > 0 && (
+          <div className="text-center mt-10">
+            <button className="bg-primary-red hover:bg-primary-700 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+              View All Campaigns
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Section 4: Contact Us */}
-      <div className="flex flex-row justify-center">
-        <img src="/images/landing/bot.png" alt="news_6" />
+      <div className="bg-primary-50 py-16">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="text-center md:text-left md:w-1/2">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary-red mb-4">Get In Touch</h2>
+              <p className="text-primary-400 mb-6 max-w-md">Have questions about our adoption process or campaigns? Reach out to us and we'll be happy to help.</p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <button className="bg-primary-red hover:bg-primary-700 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                  Contact Us
+                </button>
+                <button className="border border-primary-red text-primary-red hover:bg-primary-softpink font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                  Donate Now
+                </button>
+              </div>
+            </div>
+            <div className="md:w-1/2">
+              <Image 
+                src="/images/landing/bot.png" 
+                alt="Contact illustration" 
+                width={500} 
+                height={400}
+                className="object-contain mx-auto" 
+              />
+            </div>
+          </div>
+        </div>
       </div>
+      
+
 
     </div>
   );

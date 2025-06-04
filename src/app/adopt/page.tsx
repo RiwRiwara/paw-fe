@@ -125,7 +125,7 @@ export default function Adopt() {
 
   return (
     <div className="flex flex-col">
-      <div className="bg-primary-50 flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 relative h-[750px] bg-[url(/images/head.png)]">
+      <div className="bg-primary-50 flex flex-col items-center justify-center py-10 px-4 sm:px-6  lg:px-8 relative h-[750px] bg-[url(/images/head.png)]">
       </div>
 
       <div className="flex flex-col gap-4 container mx-auto">

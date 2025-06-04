@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { getSession } from "next-auth/react";
 
 // Base configuration
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
 const apiClient: AxiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -18,7 +18,6 @@ apiClient.interceptors.request.use(
             const session = await getSession();
             const token = session?.accessToken;
 
-            // Debug token details
             console.debug("API Request:", {
                 url: config.url,
                 hasToken: !!token,
@@ -28,19 +27,9 @@ apiClient.interceptors.request.use(
             });
 
             if (token) {
-                // The backend expects the token in a cookie named 'login', not in the Authorization header
-                // We'll set it both ways to be safe
-                
-                // Set cookie for this request
-                // Note: This will only work for same-origin requests
                 document.cookie = `login=${token}; path=/`;
-                
-                // Also retain the Authorization header as fallback
                 config.headers.Authorization = `Bearer ${token}`;
-                
-                // Set withCredentials to true to ensure cookies are sent with the request
                 config.withCredentials = true;
-                
                 console.debug("Auth cookie and header set for request");
             } else {
                 console.warn("No authentication token available for request to:", config.url);
@@ -80,6 +69,13 @@ interface InfoResponse<T> {
     success: boolean;
 }
 
+// Enum types based on Swagger x-enum-varnames
+type Gender = "Female" | "Male";
+type AdoptStatus = "Available" | "PendingApplication" | "InReview" | "ApprovedAdoption" | "RejectedAdoption" | "Adopted";
+type AccommodationType = "SingleFamilyHomes" | "TownHouse" | "ShopHouses" | "ApartmentAndCondo";
+type UserType = "General" | "Foundation" | "Admin";
+type Species = "หมา" | "แมว";
+
 // Payload types
 interface LoginBody {
     email: string;
@@ -87,12 +83,12 @@ interface LoginBody {
 }
 
 interface RegisterBody {
-    birthday: string;
+    birthday?: string;
     email: string;
     firstname: string;
-    lastname: string;
+    lastname?: string;
     password: string;
-    phoneNumber: string;
+    phoneNumber?: string;
 }
 
 interface RegisterFoundationBody extends RegisterBody {
@@ -110,16 +106,17 @@ interface ForgetPasswordBody {
 }
 
 interface AddPetBody {
+    active: number;
     age: number;
-    aggressiveness: number;
     allergic: string;
     foodAllergy: string;
-    gender: "MainPage" | "Female" | "Male";
-    imageName: string;
+    gender: Gender;
+    imageId: number;
     name: string;
     other?: string;
-    playful: number;
-    sociable: number;
+    petFriendly: number;
+    spaceRequired: number;
+    specialCareNeed: number;
     sterilization: boolean;
     vaccination: string;
     weight: number;
@@ -130,7 +127,7 @@ interface AdoptRequestBody {
 }
 
 interface UpdateUserBody {
-    accommodateType?: "SingleFamilyHomes" | "TownHouse" | "ShopHouses" | "ApartmentAndCondo";
+    accommodateType?: AccommodationType;
     bio?: string;
     birthday?: string;
     firstname?: string;
@@ -146,10 +143,10 @@ interface User {
     email: string;
     firstname: string;
     lastname: string;
-    phoneNumber: string;
+    phoneNumber?: string;
     bio?: string;
-    photoUrl?: string;
-    userType: "General" | "Foundation" | "Admin";
+    imageId?: number;
+    userType: UserType;
 }
 
 export interface UserInfo {
@@ -163,7 +160,7 @@ export interface UserInfo {
     occupation?: string;
     phoneNumber?: string;
     province?: string;
-    accommodateType?: "SingleFamilyHomes" | "TownHouse" | "ShopHouses" | "ApartmentAndCondo";
+    accommodateType?: AccommodationType;
 }
 
 interface UserMetadata {
@@ -171,7 +168,7 @@ interface UserMetadata {
     firstname: string;
     lastname: string;
     imageUrl?: string;
-    userType: string;
+    userType: UserType;
 }
 
 interface Category {
@@ -188,6 +185,7 @@ interface FoundationInfo {
 
 interface UploadResponse {
     filename: string;
+    imageId: number;
     imageUrl: string;
 }
 
@@ -195,34 +193,45 @@ export interface Pet {
     petId: number;
     name: string;
     age: string;
-    gender: string;
+    gender: Gender;
     imageUrl: string;
     weight: number;
     allergic: string;
     foodAllergy: string;
     vaccination: string;
     sterilization: boolean;
-    status: string;
+    status: AdoptStatus;
     foundationName: string;
     foundationAddress: string;
     active: number;
     spaceRequired: number;
     petFriendly: number;
     specialCareNeed: number;
-    Other?: string | null;
-    species?: string;
+    other?: string;
+    species?: Species;
     breed?: string;
-    createdAt?: string;
-    updatedAt?: string;
+}
+
+interface PetMetadata {
+    petId: number;
+    name: string;
+    age: string;
+    gender: Gender;
+    imageUrl: string;
+    rank: number;
+    ratingActive: number;
+    ratingPetFriendly: number;
+    ratingSpaceRequired: number;
+    ratingSpecialCareNeed: number;
+    totalScore: number;
 }
 
 interface AdoptionRequest {
-    requestId: number;
     petId: number;
     userId: number;
-    status: "PENDING" | "APPROVED" | "REJECTED" | "COMPLETED";
-    createdAt: string;
-    updatedAt: string;
+    status: AdoptStatus;
+    submissionDate: string;
+    rejectReason?: string;
     pet?: Pet;
     user?: UserMetadata;
 }
@@ -232,8 +241,7 @@ interface News {
     title: string;
     content: string;
     imageUrl?: string;
-    createdAt: string;
-    updatedAt: string;
+    publishDate: string;
 }
 
 export interface Campaign {
@@ -241,16 +249,13 @@ export interface Campaign {
     campaignName: string;
     description: string;
     goalAmount: number;
-    currentAmount: number;
+    raisedAmount: number;
     startDate: string;
     endDate: string;
-    status: "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
     foundationId: number;
     foundationName: string;
     foundationLogo: string;
-    imageUrl: string;
-    createdAt: string;
-    updatedAt: string;
+    campaignImage: string;
 }
 
 // API methods
@@ -265,17 +270,18 @@ const api = {
     },
     pet: {
         getCategories: () => apiClient.get<InfoResponse<Category[]>>("/categories"),
-        createPet: (body: AddPetBody) => apiClient.post<InfoResponse<Pet>>("/pet", body),
-        getPetsByCategory: (foundationId?: number, species?: string) =>
+        createPet: (body: AddPetBody) => apiClient.post<InfoResponse<UserMetadata[]>>("/pet", body),
+        getPetsByCategory: (foundationId?: number, species?: Species) =>
             apiClient.get<InfoResponse<Pet[]>>("/pet/list", { params: { foundationId, species } }),
         getPetProfile: (petId: number) => apiClient.get<InfoResponse<Pet>>(`/pet/${petId}/info`),
-        getPetAdoptionRequests: (petId: number) => apiClient.get<InfoResponse<AdoptionRequest[]>>(`/pet/${petId}/adoption-request`),
+        getPetAdoptionRequests: (petId: number) => apiClient.get<InfoResponse<UserMetadata[]>>(`/pet/${petId}/adoption-request`),
+        getPetSuggest: () => apiClient.get<InfoResponse<PetMetadata[]>>("/pet/suggest"),
     },
     news: {
         getList: () => apiClient.get<InfoResponse<News[]>>("/news"),
     },
     campaign: {
-        getList: () => apiClient.get<InfoResponse<Campaign[]>>("/campaign"),
+        getList: () => apiClient.get<InfoResponse<Campaign[]>>("/campaign/list"),
     },
     upload: {
         image: (file: File) => {
@@ -287,10 +293,10 @@ const api = {
         },
     },
     user: {
-        updateInfo: (body: UpdateUserBody) => apiClient.patch<InfoResponse<User>>("/user", body),
+        updateInfo: (body: UpdateUserBody) => apiClient.post<InfoResponse<string>>("/user", body),
         getInfo: () => apiClient.get<InfoResponse<UserInfo>>("/user/info"),
         getMetadata: () => apiClient.get<InfoResponse<UserMetadata>>("/user/metadata"),
-        requestAdoption: (body: AdoptRequestBody) => apiClient.post<InfoResponse<AdoptionRequest>>("/user/adopt", body),
+        requestAdoption: (body: AdoptRequestBody) => apiClient.post<InfoResponse<string>>("/user/adopt", body),
         getAdoptionRequests: () => apiClient.get<InfoResponse<AdoptionRequest[]>>("/user/adoption-request"),
         getFoundationInfo: () => apiClient.get<InfoResponse<FoundationInfo>>("/user/foundation/info"),
         getFoundationPets: () => apiClient.get<InfoResponse<Pet[]>>("/user/foundation/pets"),

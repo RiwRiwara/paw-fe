@@ -17,7 +17,7 @@ export default function Profile() {
   const [error, setError] = useState<string | null>(null);
 
   type PetInfo = {
-    id: number;
+    id: number | string; // Support both numeric and string IDs
     petName: string;
     petImage: string;
     status: string;
@@ -32,7 +32,7 @@ export default function Profile() {
     province: "",
     bio: "",
     occupation: "",
-    profileImage: "/images/profile.jpg",
+    profileImage: "https://placehold.co/50x50?text=profile",
     joinDate: "",
     pets: [] as PetInfo[],
     adoptionRequests: [] as PetInfo[],
@@ -97,7 +97,7 @@ export default function Profile() {
           province: userInfo.province || "",
           bio: userInfo.bio || "",
           occupation: userInfo.occupation || "",
-          profileImage: userInfo.imageUrl || "/images/profile/user-avatar.png",
+          profileImage: userInfo.imageUrl || "https://placehold.co/50x50?text=profile",
           joinDate: "Member since 2023",
         }));
       } else {
@@ -115,41 +115,59 @@ export default function Profile() {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await api.user.getAdoptionRequests();
-      console.log("Adoption requests response:", response.data);
 
+      const response = await api.user.getAdoptionRequests();
+      
       if (response.data.success) {
+        if (!Array.isArray(response.data.data)) {
+          console.error("Expected array for adoption requests but got:", typeof response.data.data);
+          setError("Received unexpected data format from server");
+          return;
+        }
+        
         const adoptionRequests: PetInfo[] = response.data.data.map((request) => ({
-          id: request.requestId,
+          id: request.petId || Math.random().toString(36).substring(2, 9), 
           petName: request.pet?.name || "Unknown Pet",
-          petImage: request.pet?.imageUrl || "/images/profile/pet-placeholder.png",
+          petImage: request.pet?.imageUrl || "https://placehold.co/50x50?text=pet",
           status: formatStatus(request.status),
-          date: formatDate(request.createdAt || ""),
+          date: formatDate(request.submissionDate || ""),
           foundationName: request.pet?.foundationName || "Unknown Foundation",
         }));
 
-        console.log("Processed adoption requests:", adoptionRequests);
-
-        setUserData((prev) => ({  
+        setUserData((prev) => ({
           ...prev,
           pets: adoptionRequests.filter((req) => req.status === "Approved" || req.status === "Completed"),
           adoptionRequests: adoptionRequests,
         }));
       } else {
-        setError(`Failed to load adoption requests: ${response.data.message}`);
+        setError(`Failed to load adoption requests: ${response.data.message || 'Unknown error'}`);
       }
     } catch (err: any) {
       console.error("Error fetching adoption requests:", err);
-      setError(err.response?.data?.message || "An error occurred while loading adoption requests");
+      setError(
+        err.response?.data?.message || 
+        err.message || 
+        "An error occurred while loading your adoption requests"
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "";
-    return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    if (!dateString) return "Unknown Date";
+    try {
+      const date = new Date(dateString);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.warn("Invalid date format:", dateString);
+        return "Unknown Date";
+      }
+      return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Unknown Date";
+    }
   };
 
   const formatStatus = (status?: string) => {
@@ -365,7 +383,7 @@ export default function Profile() {
               {userData.adoptionRequests && userData.adoptionRequests.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
+                    <thead className="bg-gray-50">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pet</th>
@@ -373,26 +391,26 @@ export default function Profile() {
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200" key={userData.adoptionRequests.length}>
+                    <tbody className="bg-white divide-y divide-gray-200">
                       {userData.adoptionRequests.map((request) => (
-                        <tr key={request.id}>
+                        <tr key={`request-${request.id}`} className="hover:bg-gray-50 transition-colors duration-150">
                           <td className="px-4 py-3 text-sm text-gray-800">{request.date}</td>
                           <td className="px-4 py-3 text-sm">
                             <div className="flex items-center">
-                              <div className="h-8 w-8 flex-shrink-0 mr-3">
+                              <div className="h-8 w-8 flex-shrink-0 mr-3 overflow-hidden rounded-full">
                                 <Image
                                   src={request.petImage}
                                   width={32}
                                   height={32}
                                   alt={request.petName}
-                                  className="rounded-full"
+                                  className="h-full w-full object-cover"
                                 />
                               </div>
                               <span className="font-medium text-gray-800">{request.petName}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-800">{request.foundationName}</td>
-                          <td className="px-4 py-3 text-sm">
+                          <td className="px-4 py-3 text-sm text-nowrap">
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColorClass(
                                 request.status
