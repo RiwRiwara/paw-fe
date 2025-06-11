@@ -40,7 +40,7 @@ const FoundationCard = ({
 
       {/* Foundation Details */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Link href={`/foundation/${id}`} className="block">
+        <div className="block">
           <div className="bg-white rounded-3xl shadow-md hover:shadow-lg transition-shadow cursor-pointer" onClick={handleCardClick}>
           <div className="flex flex-col md:flex-row gap-4  ">
             {/* Logo and Foundation Info */}
@@ -119,10 +119,10 @@ const FoundationCard = ({
           </div>
 
           </div>
-        </Link>
+        </div>
 
         {/* Foundation Images */}
-        <Link href={`/foundation/${id}`} className="block">
+        <div className="block">
           <div className="grid grid-cols-2 gap-2 cursor-pointer">
             {images.slice(0, 4).map((image, index) => (
               <div key={index} className="relative aspect-square rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
@@ -135,7 +135,7 @@ const FoundationCard = ({
               </div>
             ))}
           </div>
-        </Link>
+        </div>
       </div>
     </div>
   );

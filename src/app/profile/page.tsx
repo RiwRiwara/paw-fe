@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useSession } from "next-auth/react";
 import api from "@/utils/api";
-import type { UserInfo } from "@/utils/api";
+import type { UserInfo } from "@/utils/types";
+import axios from "axios";
 
 export default function Profile() {
   const { isAuthenticated, loading, user } = useAuth();
@@ -16,7 +16,6 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  type AdoptStatus = "Available" | "PendingApplication" | "InReview" | "ApprovedAdoption" | "RejectedAdoption" | "Adopted";
   type Gender = "Female" | "Male";
 
   type PetInfo = {
@@ -24,11 +23,12 @@ export default function Profile() {
     name: string;
     imageUrl: string;
     status: string;
-    age: string; // Changed to string to match logged data and payload.GetPetsResponse
+    age: string;
     gender: Gender;
     submissionDate: string;
     foundationName: string;
   };
+
 
   const [userData, setUserData] = useState({
     name: "",
@@ -42,26 +42,7 @@ export default function Profile() {
     pets: [] as PetInfo[],
     adoptionRequests: [] as PetInfo[],
     donations: [],
-    activities: [
-      {
-        id: 1,
-        type: "Adoption",
-        date: "2024-12-05",
-        description: "Adopted Fluffy from Soi Dog Foundation",
-      },
-      {
-        id: 2,
-        type: "Donation",
-        date: "2025-01-20",
-        description: "Donated pet supplies to School Foundation",
-      },
-      {
-        id: 3,
-        type: "Volunteer",
-        date: "2025-02-28",
-        description: "Volunteered at pet care event",
-      },
-    ],
+    activities: [],
   });
 
   useEffect(() => {
@@ -119,7 +100,12 @@ export default function Profile() {
       setIsLoading(true);
       setError(null);
 
-      const response = await api.user.getAdoptionRequests();
+      const response = await axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + "/user/adoption-request", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
 
       if (response.data.success) {
         if (!Array.isArray(response.data.data)) {
@@ -160,33 +146,18 @@ export default function Profile() {
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "Unknown Date";
-    try {
-      const date = new Date(dateString);
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        console.warn("Invalid date format:", dateString);
-        return "Unknown Date";
-      }
-      return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "Unknown Date";
-    }
-  };
 
 
 
   const getStatusColorClass = (status: string) => {
     switch (status) {
-      case "Pending":
+      case "ยื่นคำขอรับเลี้ยง":
         return "bg-yellow-100 text-yellow-800";
-      case "Approved":
+      case "อนุมัติ":
         return "bg-green-100 text-green-800";
-      case "Rejected":
+      case "ไม่อนุมัติ":
         return "bg-red-100 text-red-800";
-      case "Completed":
+      case "เสร็จสิ้น":
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -238,12 +209,10 @@ export default function Profile() {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
             <div className="relative w-32 h-32 md:w-40 md:h-40">
               <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-lg">
-                <Image
+                <img
                   src={userData.profileImage}
                   alt={userData.name}
-                  width={160}
-                  height={160}
-                  className="object-cover"
+                  className="object-cover w-full h-full"
                 />
               </div>
               <div className="absolute bottom-0 right-0 bg-orange-400 rounded-full p-2 shadow-md">
@@ -318,8 +287,14 @@ export default function Profile() {
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                  <p className="text-gray-800">{userData.email || "Not provided"}</p>
+                  <p className="text-gray-600">{userData.email}</p>
                 </div>
+                {session?.user?.userType && (
+                  <div className="mb-3">
+                    <p className="text-sm font-medium text-gray-500">Role</p>
+                    <p className="text-gray-600">{session.user.userType}</p>
+                  </div>
+                )}
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Phone</h3>
                   <p className="text-gray-800">{userData.phone || "Not provided"}</p>
@@ -332,44 +307,6 @@ export default function Profile() {
             </div>
           </div>
           <div className="md:col-span-2">
-            <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-800">My Pets</h2>
-                <Link
-                  href="/pet/create"
-                  className="text-orange-400 hover:text-orange-500 text-sm font-medium"
-                >
-                  Create New Pet
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {userData.pets.map((pet) => (
-                  <div key={pet.petId} className="flex items-center gap-4 p-3 rounded-xl border border-gray-200 hover:border-orange-200 transition-colors">
-                    <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
-                      <Image
-                        src={pet.imageUrl}
-                        alt={pet.name}
-                        fill
-                        sizes="(max-width: 64px) 100vw, 64px"
-                        className="object-cover"
-                        quality={90}
-                      />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-800">{pet.name}</h3>
-                      <p className="text-sm text-gray-600">{pet.foundationName} · {pet.submissionDate}</p>
-                    </div>
-                    <div className="ml-auto">
-                      <button className="text-orange-400 hover:text-orange-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                          <path d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
             <div className="bg-white rounded-2xl shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">My Adoption Requests</h2>
               {userData.adoptionRequests && userData.adoptionRequests.length > 0 ? (
@@ -379,21 +316,20 @@ export default function Profile() {
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pet</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foundation</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {userData.adoptionRequests.map((request) => (
                         <tr key={`request-${request.petId}`} className="hover:bg-gray-50 transition-colors duration-150">
-                          <td className="px-4 py-3 text-sm text-gray-800">{request.submissionDate}</td>
+                          <td className="px-4 py-3 text-sm text-gray-800">
+                            {request.submissionDate || "-"}
+                          </td>
                           <td className="px-4 py-3 text-sm">
                             <div className="flex items-center">
                               <div className="h-8 w-8 flex-shrink-0 mr-3 overflow-hidden rounded-full">
-                                <Image
+                                <img
                                   src={request.imageUrl}
-                                  width={32}
-                                  height={32}
                                   alt={request.name}
                                   className="h-full w-full object-cover"
                                 />
@@ -401,7 +337,6 @@ export default function Profile() {
                               <span className="font-medium text-gray-800">{request.name}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-800">{request.foundationName}</td>
                           <td className="px-4 py-3 text-sm text-nowrap">
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColorClass(

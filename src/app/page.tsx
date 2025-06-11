@@ -2,26 +2,27 @@
 import Image from "next/image";
 import { useEffect, useState } from 'react';
 import CampaignCard from "@/components/common/CampaignCard";
-import api, { Campaign } from "@/utils/api";
+import api from "@/utils/api";
+import { Campaign } from '@/utils/types';
 
 
 export default function Home() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        const response = await api.campaign.getList();
-        console.log(response.data);
-        if (response.data.success) {
-          setCampaigns(response.data.data);
-        }
-      } catch (error) {
-        console.error('Error fetching campaigns:', error);
-      }
-    };
+    // const fetchCampaigns = async () => {
+    //   try {
+    //     const response = await api.campaign.getList();
+    //     console.log(response.data);
+    //     if (response.data.success) {
+    //       setCampaigns(response.data.data);
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching campaigns:', error);
+    //   }
+    // };
 
-    fetchCampaigns();
+    // fetchCampaigns();
   }, []);
 
 

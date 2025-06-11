@@ -3,12 +3,33 @@ import { useEffect, useState, useRef } from 'react';
 import CampaignCard from "@/components/common/CampaignCard";
 import FoundationCard from "@/components/common/FoundationCard";
 import Image from "next/image";
-import api, { Campaign } from "@/utils/api";
+import api from "@/utils/api";
+import { Campaign } from '@/utils/types';
+import axios from 'axios';
+
+interface FoundationData {
+  foundationId: number;
+  foundationName: string;
+  address: string;
+  bio: string | null;
+  logo: string | null;
+  imageList: string[] | null;
+  facebook: string | null;
+  instagram: string | null;
+  donateChannel: {
+    bankName: string | null;
+    bankAccount: string | null;
+    accountName: string | null;
+  } | null;
+}
 
 export default function Foundation() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const carouselRef = useRef<NodeJS.Timeout | null>(null);
+  const [foundations, setFoundations] = useState<FoundationData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch campaigns
   useEffect(() => {
@@ -19,6 +40,32 @@ export default function Foundation() {
       }
     };
     fetchCampaigns();
+  }, []);
+
+  // Fetch foundations
+  useEffect(() => {
+    const fetchFoundations = async () => {
+      try {
+        setLoading(true);
+        const response =  await axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + "/user/foundation/list", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        });
+        if (response.data.success && response.data.data) {
+          setFoundations(response.data.data);
+        } else {
+          setError(response.data.message || 'Failed to fetch foundations');
+        }
+      } catch (err) {
+        setError('An error occurred while fetching foundations.');
+        console.error(err);
+      }
+      setLoading(false);
+    };
+
+    fetchFoundations();
   }, []);
 
   // Autoplay logic
@@ -77,7 +124,7 @@ export default function Foundation() {
                     title={campaign.campaignName}
                     description={campaign.description}
                     donationLabel="Donate"
-                    donationAmount={campaign.currentAmount.toString()}
+                    donationAmount={campaign.goalAmount.toString()}
                     donationGoal={campaign.goalAmount.toString()}
                     campaignImage="/images/landing/camp2.png"
                     rightSideImage="/images/landing/new5.png"
@@ -138,50 +185,34 @@ export default function Foundation() {
               />
             </div>
             <h2 className="text-3xl md:text-4xl font-bold">
-              <span className="text-rose-400">find your</span>
+              <span className="text-rose-400">Find your</span>
               <span className="text-amber-500"> Foundation</span>
             </h2>
           </div>
 
           <div className="grid grid-cols-1 gap-8 max-w-5xl mx-auto">
-            <FoundationCard
-              id={1}
-              logo="/images/landing/soid.png"
-              name="Soi Dog Foundation"
-              description="มูลนิธิเพื่อสุนัขในซอย กรุงเทพ"
-              phoneNumber="0812345678"
-              images={[
-                "/images/foundation/s1.png",
-                "/images/foundation/s2.png",
-                "/images/foundation/s3.png",
-                "/images/foundation/s4.png"
-              ]}
-              socialLinks={{
-                facebook: "https://facebook.com/soidogfoundation",
-                instagram: "https://instagram.com/soidogfoundation",
-                website: "https://www.soidog.org"
-              }}
-              className="mb-8"
-            />
-
-            <FoundationCard
-              id={2}
-              logo="/images/foundation/school-foundation.png"
-              name="Animal Foundation"
-              description="มูลนิธิช่วยเหลือสัตว์ กรุงเทพ"
-              phoneNumber="0987654321"
-              images={[
-                "/images/foundation/s5.png",
-                "/images/foundation/s6.png",
-                "/images/foundation/s7.png",
-                "/images/foundation/s8.png"
-              ]}
-              socialLinks={{
-                facebook: "https://facebook.com/schoolfoundation",
-                instagram: "https://instagram.com/schoolfoundation",
-                website: "https://www.animalfoundation.org"
-              }}
-            />
+            {loading && <p className="text-center text-gray-500">Loading foundations...</p>}
+            {error && <p className="text-center text-red-500">Error: {error}</p>}
+            {!loading && !error && foundations.length === 0 && (
+              <p className="text-center text-gray-500">No foundations found.</p>
+            )}
+            {!loading && !error && foundations.map((foundation) => (
+              <FoundationCard
+                key={foundation.foundationId}
+                id={foundation.foundationId}
+                logo={foundation.logo || '/images/default-logo.png'} // Provide a default/placeholder logo
+                name={foundation.foundationName}
+                description={foundation.address} // API's address field maps to card's description (which shows address)
+                phoneNumber={"N/A"} // API does not provide a direct phone number
+                images={(foundation.imageList && foundation.imageList.length > 0) ? foundation.imageList : ["/images/foundation/s1.png", "/images/foundation/s2.png", "/images/foundation/s3.png", "/images/foundation/s4.png"]} // Use API images or fallback
+                socialLinks={{
+                  facebook: foundation.facebook || undefined,
+                  instagram: foundation.instagram || undefined,
+                  // website: foundation.website || undefined, // Not in current API response
+                }}
+                className="mb-8"
+              />
+            ))}
           </div>
         </div>
       </div>

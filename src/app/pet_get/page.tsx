@@ -267,17 +267,17 @@ export default function PetAdoptionRequest() {
               <div className="flex justify-between items-start">
                 <h2 className="text-2xl md:text-3xl font-bold text-primary-500 mb-4">{pet.name}</h2>
                 <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-600">
-                  {pet.status === 'PENDING' ? 'รอการอนุมัติ' : pet.status === 'APPROVED' ? 'อนุมัติแล้ว' : pet.status}
+                  {pet.status === 'PendingApplication' ? 'รอการอนุมัติ' : pet.status === 'ApprovedAdoption' ? 'อนุมัติแล้ว' : pet.status}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div className="flex items-center gap-2">
-                  {pet.gender === "female" ?
+                  {pet.gender === "Female" ?
                     <FaVenus className="text-pink-500" /> :
                     <FaMars className="text-blue-500" />}
                   <span className="text-gray-700">
-                    {pet.gender === "female" ? "เพศเมีย" : "เพศผู้"}
+                    {pet.gender === "Female" ? "เพศเมีย" : "เพศผู้"}
                   </span>
                 </div>
 

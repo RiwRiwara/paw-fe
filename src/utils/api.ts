@@ -9,6 +9,7 @@ const apiClient: AxiosInstance = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    withCredentials: true,
 });
 
 // Request interceptor to attach JWT token
@@ -18,21 +19,47 @@ apiClient.interceptors.request.use(
             const session = await getSession();
             const token = session?.accessToken;
 
+            // Debug token information for troubleshooting
             console.debug("API Request:", {
                 url: config.url,
                 hasToken: !!token,
-                tokenLength: token ? token.length : 0,
+                tokenLength: token ? token.length : 0, 
                 tokenPreview: token ? `${token.substring(0, 5)}...` : null,
-                isValidJwt: token ? /^eyJ/.test(token) : false, // Basic JWT format check
             });
-
+            
             if (token) {
-                document.cookie = `login=${token}; path=/`;
-                config.headers.Authorization = `Bearer ${token}`;
+                // 1. Set Authorization header - this is standard for JWT
+                config.headers = config.headers || {};
+                config.headers['Authorization'] = `Bearer ${token}`;
+                
+                // 2. Set cookies for authentication - match backend expectations
+                // Setting HttpOnly false so JS can access it (needed for our implementation)
+                // The cookie name 'login' is what the backend expects based on curl test
+                if (typeof window !== 'undefined') {
+                    document.cookie = `login=${token}; path=/; max-age=86400; SameSite=Lax`;
+                }
+                
+                // 3. Critical: ensure credentials are included with requests
+                // This ensures cookies are sent with cross-origin requests
                 config.withCredentials = true;
-                console.debug("Auth cookie and header set for request");
+                
+                console.debug("✓ Authentication set for request to:", config.url);
             } else {
-                console.warn("No authentication token available for request to:", config.url);
+                console.warn("❌ No authentication token available for request to:", config.url);
+                // Try to get token from cookie as fallback (browser refresh case)
+                if (typeof window !== 'undefined') {
+                    const cookies = document.cookie.split('; ');
+                    const loginCookie = cookies.find(cookie => cookie.startsWith('login='));
+                    if (loginCookie) {
+                        const cookieToken = loginCookie.split('=')[1];
+                        if (cookieToken) {
+                            console.debug("🔄 Using token from cookie instead of session");
+                            config.headers = config.headers || {};
+                            config.headers['Authorization'] = `Bearer ${cookieToken}`;
+                            config.withCredentials = true;
+                        }
+                    }
+                }
             }
         } catch (error) {
             console.error("Error setting auth token:", error);
@@ -44,12 +71,39 @@ apiClient.interceptors.request.use(
 
 // Response interceptor for global error handling
 apiClient.interceptors.response.use(
-    (response: AxiosResponse) => response,
+    (response: AxiosResponse) => {
+        // Check if the response is successful but contains error messages
+        // Some APIs return 200 but include error information in the body
+        if (response.data && response.data.success === false) {
+            console.warn("API returned success:false for:", response.config.url, response.data);
+        }
+        return response;
+    },
     (error) => {
-        if (error.response?.status === 401) {
-            console.warn("401 Unauthorized received for:", error.config.url);
-            // Let the component handle 401 errors
-            return Promise.reject(error);
+        // Enhanced error logging to help diagnose issues
+        if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.warn(`Error ${error.response.status} received for: ${error.config?.url}`, {
+                data: error.response.data,
+                headers: error.response.headers,
+                config: {
+                    url: error.config?.url,
+                    method: error.config?.method,
+                    hasAuthHeader: !!error.config?.headers?.Authorization
+                }
+            });
+            
+            // Special handling for authentication errors
+            if (error.response.status === 401) {
+                console.warn("Authentication error: Token may be invalid or expired");
+            }
+        } else if (error.request) {
+            // The request was made but no response was received
+            console.error("No response received:", error.request);
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            console.error("Request error:", error.message);
         }
         return Promise.reject(error);
     }
