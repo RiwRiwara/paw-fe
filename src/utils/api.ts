@@ -230,11 +230,22 @@ interface Category {
     name: string;
 }
 
-interface FoundationInfo {
+export interface DonateChannel {
+    bankName: string | null;
+    bankAccount: string | null;
+    accountName: string | null;
+}
+
+export interface FoundationInfo {
+    foundationId: number;
     foundationName: string;
     address: string;
-    bio: string;
-    imageUrl: string;
+    bio: string | null;
+    logo: string | null;
+    imageList: string[] | null;
+    facebook: string | null;
+    instagram: string | null;
+    donateChannel: DonateChannel | null;
 }
 
 interface UploadResponse {
@@ -346,6 +357,10 @@ const api = {
             });
         },
     },
+    foundation: {
+        getList: () => apiClient.get<InfoResponse<FoundationInfo[]>>("/user/foundation/list"),
+    },
+
     user: {
         updateInfo: (body: UpdateUserBody) => apiClient.post<InfoResponse<string>>("/user", body),
         getInfo: () => apiClient.get<InfoResponse<UserInfo>>("/user/info"),

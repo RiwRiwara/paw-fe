@@ -2,6 +2,7 @@
 import { Montserrat_Alternates, Montserrat } from "next/font/google";
 import "./globals.css";
 import AuthLayout from "@/components/layouts/AuthLayout";
+import { Toaster } from "react-hot-toast";
 import { SessionProvider } from "next-auth/react";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -33,6 +34,7 @@ export default function RootLayout({
         className={`${mostSans.variable} ${geistAlter.variable} antialiased`}
       >
         <SessionProvider>
+            <Toaster position="top-center" />
           <AuthLayout>{children}</AuthLayout>
         </SessionProvider>
       </body>

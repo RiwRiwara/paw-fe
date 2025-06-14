@@ -2,8 +2,6 @@
 import { useEffect, useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useRouter } from 'next/navigation';
-import api from "@/utils/api";
 
 // Foundation components
 import PetOverview from '@/components/foundation/PetOverview';
@@ -51,8 +49,7 @@ interface AdoptionRequest {
 }
 
 export default function FoundationDetail() {
-  const params = useParams();
-  const router = useRouter();
+  const params = 1;
   const [foundation, setFoundation] = useState<Foundation | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [adoptionRequests, setAdoptionRequests] = useState<AdoptionRequest[]>([]);
@@ -65,10 +62,12 @@ export default function FoundationDetail() {
     const fetchFoundationDetail = async () => {
       setLoading(true);
       try {
+        // In a real app, we would use the actual API
+        // const response = await api.foundation.getFoundationById(params.id);
 
         // Mock data for demonstration
         const mockFoundation: Foundation = {
-          id: parseInt(params.id as string),
+          id: 1,
           name: "Soi Dog Foundation",
           description: "มูลนิธิเพื่อสุนัขในซอย กรุงเทพ",
           logo: "/images/landing/soid.png",
@@ -226,15 +225,13 @@ export default function FoundationDetail() {
       }
     };
 
-    if (params.id) {
-      fetchFoundationDetail();
-    }
-  }, [params.id]);
+    fetchFoundationDetail();
+  }, []);
 
   const handleAddPet = (petData: any) => {
     // In a real app, this would send the data to your API
     console.log('New pet data:', petData);
-    
+
     // For now, let's simulate adding a pet by adding it to the state
     const newPet: Pet = {
       id: Math.max(...pets.map(p => p.id)) + 1, // Generate a new ID
@@ -244,7 +241,7 @@ export default function FoundationDetail() {
       image: petData.image ? URL.createObjectURL(petData.image) : '/images/foundation/s1.png',
       isAdopted: false,
     };
-    
+
     setPets([...pets, newPet]);
   };
 
@@ -328,23 +325,23 @@ export default function FoundationDetail() {
       </div>
 
       {/* Overview pet in foundation */}
-      <PetOverview 
-        pets={pets} 
-        onAddPet={() => setShowAddPetModal(true)} 
+      <PetOverview
+        pets={pets}
+        onAddPet={() => setShowAddPetModal(true)}
       />
 
       {/* สัตว์ที่ยังอยู่ในมูลนิธิ */}
-      <PetSection 
-        title="สัตว์ที่ยังอยู่ในมูลนิธิ" 
-        showAdopted={false} 
-        pets={pets} 
+      <PetSection
+        title="สัตว์ที่ยังอยู่ในมูลนิธิ"
+        showAdopted={false}
+        pets={pets}
       />
 
       {/*  สัตว์ที่ถูกรับเลี้ยงแล้ว*/}
-      <PetSection 
-        title="สัตว์ที่ถูกรับเลี้ยงแล้ว" 
-        showAdopted={true} 
-        pets={pets} 
+      <PetSection
+        title="สัตว์ที่ถูกรับเลี้ยงแล้ว"
+        showAdopted={true}
+        pets={pets}
       />
 
 
@@ -357,14 +354,14 @@ export default function FoundationDetail() {
           การรับเลี้ยง
         </button>
       </div>
-      
+
       {/* Adoption Requests Modal */}
       <AdoptionRequestsModal
         isOpen={showAdoptionModal}
         onClose={() => setShowAdoptionModal(false)}
         adoptionRequests={adoptionRequests}
       />
-      
+
       {/* Add Pet Modal */}
       <AddPetModal
         isOpen={showAddPetModal}

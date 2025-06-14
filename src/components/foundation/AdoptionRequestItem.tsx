@@ -1,7 +1,7 @@
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
-interface AdoptionRequestItemProps {
+
+export interface AdoptionRequest {
   id: number;
   userId: number;
   petId: number;
@@ -14,15 +14,26 @@ interface AdoptionRequestItemProps {
   status: 'pending' | 'approved' | 'rejected';
 }
 
-const AdoptionRequestItem = ({ 
-  userId, 
-  petName, 
-  petType, 
-  petAge, 
-  userName, 
-  userImage 
+interface AdoptionRequestItemProps extends AdoptionRequest {
+  onCheck: (request: AdoptionRequest) => void;
+}
+
+
+
+const AdoptionRequestItem = ({
+  id,
+  userId,
+  petId,
+  petName,
+  petType,
+  petAge,
+  userName,
+  userImage,
+  date,
+  status,
+  onCheck,
 }: AdoptionRequestItemProps) => {
-  const router = useRouter();
+  
   
   return (
     <div className="bg-[#FFF9F9] rounded-xl p-4 border border-rose-100">
@@ -46,7 +57,7 @@ const AdoptionRequestItem = ({
       </div>
       <div className="flex justify-end">
         <button
-          onClick={() => router.push(`/profile?id=${userId}`)}
+          onClick={() => onCheck({ id, userId, petId, petName, petType, petAge, userName, userImage, date, status })}
           className="bg-rose-400 hover:bg-rose-500 text-white px-4 py-1 rounded-full text-sm transition-colors"
         >
           ตรวจสอบ

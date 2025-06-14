@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
-import api from "@/utils/api";
 
 /**
  * The LoginPage component provides a user interface for users to log in.
@@ -34,8 +34,10 @@ const LoginPage: React.FC = () => {
         console.log(result);
 
         if (result?.error) {
+            toast.error("Invalid email or password");
             setError("Invalid email or password");
         } else {
+            toast.success("Login successful");
             router.push("/");
         }
     };

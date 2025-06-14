@@ -5,29 +5,16 @@ import FoundationCard from "@/components/common/FoundationCard";
 import Image from "next/image";
 import api from "@/utils/api";
 import { Campaign } from '@/utils/types';
-import axios from 'axios';
+import { FoundationInfo } from '@/utils/api';
 
-interface FoundationData {
-  foundationId: number;
-  foundationName: string;
-  address: string;
-  bio: string | null;
-  logo: string | null;
-  imageList: string[] | null;
-  facebook: string | null;
-  instagram: string | null;
-  donateChannel: {
-    bankName: string | null;
-    bankAccount: string | null;
-    accountName: string | null;
-  } | null;
-}
+
+
 
 export default function Foundation() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const carouselRef = useRef<NodeJS.Timeout | null>(null);
-  const [foundations, setFoundations] = useState<FoundationData[]>([]);
+  const [foundations, setFoundations] = useState<FoundationInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,12 +34,7 @@ export default function Foundation() {
     const fetchFoundations = async () => {
       try {
         setLoading(true);
-        const response =  await axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + "/user/foundation/list", {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        });
+        const response = await api.foundation.getList();
         if (response.data.success && response.data.data) {
           setFoundations(response.data.data);
         } else {
@@ -61,8 +43,9 @@ export default function Foundation() {
       } catch (err) {
         setError('An error occurred while fetching foundations.');
         console.error(err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchFoundations();
@@ -94,20 +77,8 @@ export default function Foundation() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Section 1 */}
-      <div className="flex flex-col justify-center items-center py-20 bg-primary-softpink gap-10">
-        <h1 className="text-5xl font-bold text-[#F15173]">Campaign & Foundation</h1>
-        <img src="/images/foundation/img1.png" className="w-[50%]" alt="foundation" />
-      </div>
 
-      {/* Section 2 */}
-      <div className="w-full flex flex-row justify-center my-10">
-        <img
-          src="/images/foundation/textdonate.png"
-          alt="text_donate"
-          className="w-[30%]"
-        />
-      </div>
+
 
       {/* Campaigns Section with Custom Carousel */}
       <div className="container mx-auto px-4 py-8">
@@ -190,28 +161,30 @@ export default function Foundation() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 gap-8 max-w-5xl mx-auto" >
             {loading && <p className="text-center text-gray-500">Loading foundations...</p>}
             {error && <p className="text-center text-red-500">Error: {error}</p>}
             {!loading && !error && foundations.length === 0 && (
               <p className="text-center text-gray-500">No foundations found.</p>
             )}
-            {!loading && !error && foundations.map((foundation) => (
+            {!loading && !error && foundations.map((foundation, index) => (
               <FoundationCard
-                key={foundation.foundationId}
-                id={foundation.foundationId}
-                logo={foundation.logo || '/images/default-logo.png'} // Provide a default/placeholder logo
-                name={foundation.foundationName}
-                description={foundation.address} // API's address field maps to card's description (which shows address)
-                phoneNumber={"N/A"} // API does not provide a direct phone number
-                images={(foundation.imageList && foundation.imageList.length > 0) ? foundation.imageList : ["/images/foundation/s1.png", "/images/foundation/s2.png", "/images/foundation/s3.png", "/images/foundation/s4.png"]} // Use API images or fallback
-                socialLinks={{
-                  facebook: foundation.facebook || undefined,
-                  instagram: foundation.instagram || undefined,
-                  // website: foundation.website || undefined, // Not in current API response
-                }}
-                className="mb-8"
-              />
+                  isRight={index % 2 === 0}
+                  key={foundation.foundationId}
+                  id={foundation.foundationId}
+                  logo={foundation.logo || 'https://placehold.co/400x300?text=Pet+Image'}
+                  name={foundation.foundationName}
+                  description={foundation.address}
+                  phoneNumber={"N/A"}
+                  images={(foundation.imageList && foundation.imageList.length > 0) ? foundation.imageList : ["/images/foundation/s1.png", "/images/foundation/s2.png", "/images/foundation/s3.png", "/images/foundation/s4.png"]}
+                  socialLinks={{
+                    facebook: foundation.facebook || undefined,
+                    instagram: foundation.instagram || undefined,
+                    // website: foundation.website || undefined, // Not in current API response
+                  }}
+                  className="mb-8"
+                />
+
             ))}
           </div>
         </div>
