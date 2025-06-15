@@ -42,7 +42,7 @@ const NavbarApp: React.FC = () => {
                     Profile
                 </Link>
                 <button
-                    onClick={() => signOut({ callbackUrl: "/login" })}
+                    onClick={() => signOut({ callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:8000"}/login` })}
                     className="text-orange-400"
                 >
                     Sign Out
