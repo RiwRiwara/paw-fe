@@ -178,7 +178,7 @@ export default function Adopt() {
                   To get personalized pet suggestions, please complete our personality quiz.
                 </p>
                 <Link
-                  href="/personality-quiz"
+                  href="/personality_test"
                   className="inline-block bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400 font-semibold hover:text-white hover:bg-orange-400"
                 >
                   Take Personality Quiz
@@ -224,6 +224,12 @@ export default function Adopt() {
               <div className="bg-blue-50 border border-blue-400 text-blue-800 p-4 rounded-lg my-6 max-w-2xl mx-auto text-center">
                 <h3 className="font-medium">No specific suggestions right now.</h3>
                 <p>Complete your personality quiz or check out all available pets below!</p>
+                <Link
+                  href="/personality_test"
+                  className="inline-block mt-3 bg-primary-500 text-primary-400 px-4 py-2 rounded-full shadow-md hover:bg-primary-600 transition border border-primary-400 font-semibold hover:text-white hover:bg-orange-400"
+                >
+                  Take Personality Quiz
+                </Link>
               </div>
             )}
           </div>

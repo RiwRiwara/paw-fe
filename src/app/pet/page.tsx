@@ -22,7 +22,7 @@ export default function Pet() {
 
       try {
         const response = await api.pet.getPetProfile(parseInt(petId));
-        console.log(response.data);
+        console.log("pet", response.data);
         if (response.data.success) {
           setPet(response.data.data);
         } else {

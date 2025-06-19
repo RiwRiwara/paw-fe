@@ -13,8 +13,8 @@ import Image from 'next/image';
  * If authentication fails, it displays an error message. If successful, it redirects the user to the dashboard.
  */
 const LoginPage: React.FC = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("usertest1@gmail.com");
+    const [password, setPassword] = useState("12345678");
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
@@ -78,17 +78,7 @@ const LoginPage: React.FC = () => {
                         {showPassword ? "🙈" : "👁️"}
                     </button>
                 </div>
-                <div className="flex items-center justify-between mb-4">
-                    <label className="flex items-center text-sm text-gray-600">
-                        <input
-                            type="checkbox"
-                            checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
-                            className="mr-2"
-                        />
-                        Remember me
-                    </label>
-                </div>
+
                 {error && (
                     <p className="text-red-500 text-sm mb-4">{error}</p>
                 )}
