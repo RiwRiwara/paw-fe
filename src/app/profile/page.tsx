@@ -44,6 +44,12 @@ export default function Profile() {
   });
 
   useEffect(() => {
+    // If user is foundation, redirect to foundation profile
+    if (!loading && isAuthenticated && user?.userType === "foundation") {
+      router.push("/foundation_profile");
+      return;
+    }
+
     // Redirect to login if not authenticated
     if (!loading && !isAuthenticated) {
       router.push("/login?callbackUrl=" + encodeURIComponent(window.location.href));

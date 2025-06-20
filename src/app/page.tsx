@@ -15,6 +15,7 @@ export default function Home() {
         const response = await api.campaign.getList();
         console.log(response.data);
         if (response.data.success) {
+          console.log(response.data.data);
           setCampaigns(response.data.data);
         }
       } catch (error) {

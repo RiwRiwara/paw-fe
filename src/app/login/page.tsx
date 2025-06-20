@@ -37,10 +37,10 @@ const LoginPage: React.FC = () => {
             if (!response.ok) {
                 throw new Error(data.message || 'Login failed');
             }
-            
+
             // Save the entire response data to localStorage for debugging
             localStorage.setItem('loginResponse', JSON.stringify(data));
-            
+
             // Handle nested data structure from API response
             if (data.success && data.code === 200 && data.data) {
                 // Save token to both cookies and localStorage
@@ -51,11 +51,11 @@ const LoginPage: React.FC = () => {
                     } else {
                         Cookies.set('login', data.data.token);
                     }
-                    
+
                     // Save token to localStorage as well
                     localStorage.setItem('token', data.data.token);
                 }
-                
+
                 // Save user metadata to localStorage
                 if (data.data.userMetadata) {
                     localStorage.setItem('user', JSON.stringify(data.data.userMetadata));
