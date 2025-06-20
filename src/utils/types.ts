@@ -103,6 +103,7 @@ export interface UserInfo {
     occupation?: string;
     phoneNumber?: string;
     province?: string;
+    birthday?: string;
     accommodateType?: AccommodationType;
 }
 

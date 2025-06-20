@@ -6,6 +6,7 @@ import api from "@/utils/api";
 import type { Pet } from "@/utils/api";
 
 export default function Pet() {
+  const [isFoundation, setIsFoundation] = useState(false);
   const searchParams = useSearchParams();
   const petId = searchParams.get("petId");
   const [loading, setLoading] = useState<boolean>(true);
@@ -13,6 +14,19 @@ export default function Pet() {
   const [pet, setPet] = useState<Pet | null>(null);
 
   useEffect(() => {
+    // detect user role
+    if (typeof window !== 'undefined') {
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          const role = userObj.role || userObj.type || userObj.userType;
+          setIsFoundation(role === 'foundation' || role === 'FOUNDATION');
+        }
+      } catch (e) {
+        console.error('Failed to parse user info', e);
+      }
+    }
     async function fetchPetData() {
       if (!petId) {
         setError("Pet ID is missing in the URL.");
@@ -146,6 +160,7 @@ export default function Pet() {
         </div>
 
         {/* Adoption Button or Status */}
+        {!isFoundation && (
         <div className="flex justify-center">
           {isAlreadyAdopted ? (
             <div className="bg-amber-50 border border-amber-200 text-amber-800 px-8 py-4 rounded-xl text-center shadow-md">
@@ -168,6 +183,7 @@ export default function Pet() {
             </a>
           )}
         </div>
+        )}
       </div>
     </div>
   );
