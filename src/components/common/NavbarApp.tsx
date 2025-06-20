@@ -50,6 +50,7 @@ const NavbarApp: React.FC = () => {
                     { href: "/", label: "Home" },
                     { href: "/foundation", label: "Foundation" },
                     { href: "/adopt", label: "Adopt" },
+                    { href: "/about", label: "About Us" },
                     ...(isFoundation ? [{ href: "/campaign", label: "campaign" }] : []),
                 ].map(({ href, label }) => (
                     <Link

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
-import api from '@/utils/api';
+// import api from '@/utils/api';
 // Use native fetch with cookies instead of custom api
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://giveapaw.ivelse.com/api/v1';
 
@@ -12,6 +12,7 @@ import PetSection from '@/components/foundation/PetSection';
 import AdoptionRequestsModal from '@/components/foundation/AdoptionRequestsModal';
 import AddPetModal from '@/components/foundation/AddPetModal';
 import Cookies from 'js-cookie';
+import toast from 'react-hot-toast';
 
 interface Foundation {
   id: number;
@@ -167,25 +168,19 @@ export default function FoundationDetail() {
   }, []);
 
   const handleAddPet = async (petData: any) => {
-
     try {
-      // 1. Upload image if provided
-      // let imageId: number | undefined;
-      // if (petData.image) {
-      //   const uploadRes = await api.upload.image(petData.image);
-      //   if (uploadRes.data.success) {
-      //     imageId = ((uploadRes.data.data as any).imageId || ((uploadRes.data.data as any).id || 0));
-      //   }
-      // }
+      // TODO: integrate image upload once backend is ready
       const imageId = 1;
 
-      // 2. Construct request body for creating pet
-      const body = {
+      console.log("petData", petData);
+
+      const payload = {
         active: 1,
         age: parseInt(petData.age) || 0,
         allergic: petData.allergic || '',
         foodAllergy: petData.foodAllergy || '',
-        gender: petData.gender,
+        // tolowercase
+        gender: (petData.gender).toLowerCase(),
         imageId: imageId as number,
         name: petData.name,
         other: petData.other || '',
@@ -195,30 +190,32 @@ export default function FoundationDetail() {
         sterilization: petData.sterilization,
         vaccination: petData.vaccination || '',
         weight: parseFloat(petData.weight) || 0,
+        specie: petData.type,
+        breed: "string",
       } as any;
 
-      const createRes = await api.pet.createPet(body);
-      if (createRes.data.success) {
-        // Refresh pet list
-        const petsRes = await api.foundation.getFoundationPets();
-        if (petsRes.data.success) {
-          const petsData: Pet[] = petsRes.data.data.map((p: any) => ({
-            id: p.petId,
-            name: p.name,
-            type: p.species || 'หมา',
-            age: p.age,
-            image: p.imageUrl,
-            isAdopted: p.status === 'Adopted',
-          }));
-          setPets(petsData);
-        }
-      }
+      const createRes = await fetch(`${API_BASE_URL}/pet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      var createJson = await createRes.json();
+      console.log("createJson", createJson);
+      if (createRes.ok) {
+        toast.success('Pet added successfully');
+        setShowAddPetModal(false);
+      } else {
+          }
     } catch (err) {
       console.error('Error adding new pet:', err);
+    } finally {
+      setShowAddPetModal(false);
     }
-    setShowAddPetModal(false);
   };
-
 
   if (loading) {
     return (

@@ -19,10 +19,10 @@ function BottomBar() {
                             <span className="font-bold text-xl">Give a Paw</span>
                         </div>
                         <div className="flex gap-8">
-                            <a href="#" className="hover:underline">Home</a>
-                            <a href="#" className="hover:underline">Adoption</a>
-                            <a href="#" className="hover:underline">Campaigns</a>
-                            <a href="#" className="hover:underline">About Us</a>
+                            <a href="/" className="hover:underline">Home</a>
+                            <a href="/adopt" className="hover:underline">Adoption</a>
+                            <a href="/campaign" className="hover:underline">Campaigns</a>
+                            <a href="/about" className="hover:underline">About Us</a>
                         </div>
                         <div className="text-sm">© 2025 Give a Paw. All rights reserved.</div>
                     </div>

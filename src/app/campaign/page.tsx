@@ -20,7 +20,7 @@ export default function CampaignPage() {
   const [searchTopic, setSearchTopic] = useState<'all' | 'campaign' | 'news'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAddCampaignModal, setShowAddCampaignModal] = useState(false);
-  
+
   // Mock campaign data
   const mockCampaigns: Campaign[] = [
     {
@@ -99,12 +99,12 @@ export default function CampaignPage() {
   const filteredCampaigns = mockCampaigns.filter(campaign => {
     // Filter by topic if not 'all'
     const topicMatch = searchTopic === 'all' ? true : campaign.type === searchTopic;
-    
+
     // Filter by search query if present
-    const queryMatch = searchQuery === '' ? true : 
-      campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const queryMatch = searchQuery === '' ? true :
+      campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       campaign.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     return topicMatch && queryMatch;
   });
 
@@ -112,8 +112,8 @@ export default function CampaignPage() {
   const CampaignCard = ({ campaign }: { campaign: Campaign }) => (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
       <div className="relative h-48 w-full">
-        <Image 
-          src={campaign.image} 
+        <Image
+          src={campaign.image}
           alt={campaign.title}
           fill
           className="object-cover"
@@ -121,14 +121,12 @@ export default function CampaignPage() {
       </div>
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            campaign.type === 'campaign' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-          }`}>
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${campaign.type === 'campaign' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+            }`}>
             {campaign.type === 'campaign' ? 'แคมเปญ' : 'ข่าวสาร'}
           </span>
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            campaign.status === 'active' ? 'bg-rose-100 text-rose-600' : 'bg-gray-100 text-gray-600'
-          }`}>
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${campaign.status === 'active' ? 'bg-rose-100 text-rose-600' : 'bg-gray-100 text-gray-600'
+            }`}>
             {campaign.status === 'active' ? 'กำลังดำเนินการ' : 'สิ้นสุดแล้ว'}
           </span>
         </div>
@@ -147,6 +145,30 @@ export default function CampaignPage() {
       {/* Header */}
       <div className='flex flex-row justify-center mb-8'>
         <img src="/images/giveapet.png" alt="giveapet" width={500} height={50} />
+      </div>
+
+
+      {/* Section 2: Campaign Overview */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <h2 className="text-2xl font-bold text-rose-600 mb-4">ภาพรวมแคมเปญและข่าวสาร</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-[#FFEBEB] p-4 rounded-2xl">
+            <h3 className="text-xl font-bold text-rose-700 mb-2">แคมเปญที่กำลังดำเนินการอยู่</h3>
+            <p className="text-3xl font-bold text-rose-600">{activeCampaigns.length}</p>
+          </div>
+          <div className="bg-[#FFEBEB] p-4 rounded-2xl">
+            <h3 className="text-xl font-bold text-rose-700 mb-2">แคมเปญสิ้นสุดแล้ว</h3>
+            <p className="text-3xl font-bold text-rose-600">{completedCampaigns.length}</p>
+          </div>
+        </div>
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={() => setShowAddCampaignModal(true)}
+            className="bg-rose-400 hover:bg-rose-500 text-white py-2 px-6 rounded-full font-bold transition-colors"
+          >
+            สร้างแคมเปญและข่าวสารใหม่
+          </button>
+        </div>
       </div>
 
       {/* Section 1: Search */}
@@ -176,28 +198,6 @@ export default function CampaignPage() {
         </div>
       </div>
 
-      {/* Section 2: Campaign Overview */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-        <h2 className="text-2xl font-bold text-rose-600 mb-4">ภาพรวมแคมเปญและข่าวสาร</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-[#FFEBEB] p-4 rounded-2xl">
-            <h3 className="text-xl font-bold text-rose-700 mb-2">แคมเปญที่กำลังดำเนินการอยู่</h3>
-            <p className="text-3xl font-bold text-rose-600">{activeCampaigns.length}</p>
-          </div>
-          <div className="bg-[#FFEBEB] p-4 rounded-2xl">
-            <h3 className="text-xl font-bold text-rose-700 mb-2">แคมเปญสิ้นสุดแล้ว</h3>
-            <p className="text-3xl font-bold text-rose-600">{completedCampaigns.length}</p>
-          </div>
-        </div>
-        <div className="flex justify-end mt-6">
-          <button 
-            onClick={() => setShowAddCampaignModal(true)}
-            className="bg-rose-400 hover:bg-rose-500 text-white py-2 px-6 rounded-full font-bold transition-colors"
-          >
-            สร้างแคมเปญและข่าวสารใหม่
-          </button>
-        </div>
-      </div>
 
       {/* Section 3: Active Campaigns */}
       <div className="mb-8">
