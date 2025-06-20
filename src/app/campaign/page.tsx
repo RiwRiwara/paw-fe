@@ -25,13 +25,13 @@ export default function CampaignPage() {
   const mockCampaigns: Campaign[] = [
     {
       id: 1,
-      title: "รับบริจาคอาหารสุนัข",
+      title: "รับบริจาคอาหารหมา",
       type: "campaign",
       image: "/images/foundation/s1.png",
       startDate: "2025-05-01",
       endDate: "2025-07-01",
       status: "active",
-      description: "ร่วมบริจาคอาหารสุนัขเพื่อช่วยเหลือสุนัขจรจัดในมูลนิธิของเรา"
+      description: "ร่วมบริจาคอาหารหมาเพื่อช่วยเหลือหมาจรจัดในมูลนิธิของเรา"
     },
     {
       id: 2,

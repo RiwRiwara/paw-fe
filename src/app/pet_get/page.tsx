@@ -11,6 +11,7 @@ import { FaPaw, FaMapMarkerAlt, FaMars, FaVenus, FaHome, FaBriefcase, FaPhone, F
 export default function PetAdoptionRequest() {
   const { isAuthenticated, loading, user } = useAuth();
 
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const petId = searchParams.get("petId");
@@ -38,6 +39,7 @@ export default function PetAdoptionRequest() {
       if (isAuthenticated) {
         try {
           const response = await api.user.getInfo();
+          
           if (response.data.success) {
             const userData = response.data.data;
             setFormData(prev => ({
@@ -80,6 +82,8 @@ export default function PetAdoptionRequest() {
       try {
         setLoadingPet(true);
         const response = await api.pet.getPetProfile(parseInt(petId));
+        console.log("Response pet profile:", response.data);
+        
         if (response.data.success) {
           setPet(response.data.data);
         } else {
@@ -236,6 +240,13 @@ export default function PetAdoptionRequest() {
     );
   }
 
+  // Check if the pet has already been adopted
+  // Using type assertion since the API returns status in Thai which doesn't match our TypeScript enum
+  const petStatus = (pet?.status as unknown) as string;
+  const isAlreadyAdopted = petStatus === "ได้รับการรับเลี้ยงแล้ว" || 
+                     petStatus === "Adopted" || 
+                     (petStatus && petStatus.includes("ได้รับการรับเลี้ยงแล้ว"));
+
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Header with elegant styling */}
@@ -316,18 +327,35 @@ export default function PetAdoptionRequest() {
       </div>
 
       <div className="container mx-auto px-4 max-w-4xl">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-primary-500 flex items-center gap-2">
-              <FaPaw className="text-primary-400" />
-              <span>กรอกข้อมูลผู้ขอรับเลี้ยง</span>
-            </h2>
-            <Link href="/" className="flex items-center text-gray-500 hover:text-primary-500 transition-colors">
-              <FaChevronLeft className="mr-1" /> กลับไปหน้าหลัก
-            </Link>
+        {isAlreadyAdopted ? (
+          <div className="bg-amber-50 rounded-xl shadow-lg p-8 mb-8 text-center">
+            <h2 className="text-2xl font-bold text-amber-800 mb-6">น้อง{pet.name} ได้รับการรับเลี้ยงแล้ว</h2>
+            <div className="flex flex-col items-center justify-center gap-4 py-6">
+              <div className="text-amber-700 text-lg max-w-lg mx-auto">
+                <p>ขออภัย น้อง{pet.name} ได้มีบ้านใหม่แล้ว ขอบคุณสำหรับความสนใจ</p>
+                <p className="mt-3">คุณสามารถดูน้องๆ ที่ยังรอบ้านคนอื่นๆ ได้ที่หน้าหลัก</p>
+              </div>
+              <Link 
+                href="/"
+                className="mt-6 bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              >
+                กลับไปดูน้องๆ ตัวอื่น
+              </Link>
+            </div>
           </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-primary-500 flex items-center gap-2">
+                <FaPaw className="text-primary-400" />
+                <span>กรอกข้อมูลผู้ขอรับเลี้ยง</span>
+              </h2>
+              <Link href="/" className="flex items-center text-gray-500 hover:text-primary-500 transition-colors">
+                <FaChevronLeft className="mr-1" /> กลับไปหน้าหลัก
+              </Link>
+            </div>
 
-          <form className="grid md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
+            <form className="grid md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
             {/* Left column */}
             <div className="space-y-5">
               {/* Name Fields */}
@@ -496,6 +524,7 @@ export default function PetAdoptionRequest() {
             </div>
           </form>
         </div>
+        )}
       </div>
     </div>
   );

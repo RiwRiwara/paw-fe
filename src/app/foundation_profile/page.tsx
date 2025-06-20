@@ -2,12 +2,16 @@
 import { useEffect, useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
+import api from '@/utils/api';
+// Use native fetch with cookies instead of custom api
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://giveapaw.ivelse.com/api/v1';
 
 // Foundation components
 import PetOverview from '@/components/foundation/PetOverview';
 import PetSection from '@/components/foundation/PetSection';
 import AdoptionRequestsModal from '@/components/foundation/AdoptionRequestsModal';
 import AddPetModal from '@/components/foundation/AddPetModal';
+import Cookies from 'js-cookie';
 
 interface Foundation {
   id: number;
@@ -29,7 +33,7 @@ interface Foundation {
 interface Pet {
   id: number;
   name: string;
-  type: 'สุนัข' | 'แมว';
+  type: 'หมา' | 'แมว';
   age: string;
   image: string;
   isAdopted: boolean;
@@ -40,7 +44,7 @@ interface AdoptionRequest {
   userId: number;
   petId: number;
   petName: string;
-  petType: 'สุนัข' | 'แมว';
+  petType: 'หมา' | 'แมว';
   petAge: string;
   userName: string;
   userImage: string;
@@ -58,192 +62,162 @@ export default function FoundationDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const token = Cookies.get('login') || localStorage.getItem('token');
+
   useEffect(() => {
-    const fetchFoundationDetail = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        // In a real app, we would use the actual API
-        // const response = await api.foundation.getFoundationById(params.id);
+        // Parallel requests using native fetch; cookies will be sent with `credentials: "include"`
+        const [foundationRes, adoptedRes, availableRes, adoptReqRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/user/foundation/info`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            credentials: 'include'
+          }),
+          fetch(`${API_BASE_URL}/user/foundation/pet/adopted/status`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            credentials: 'include'
+          }),
+          fetch(`${API_BASE_URL}/user/foundation/pet/available/status`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            credentials: 'include'
+          }),
+          fetch(`${API_BASE_URL}/user/foundation/adopted-request/list`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            credentials: 'include'
+          }),
+        ]);
 
-        // Mock data for demonstration
-        const mockFoundation: Foundation = {
-          id: 1,
-          name: "Soi Dog Foundation",
-          description: "มูลนิธิเพื่อสุนัขในซอย กรุงเทพ",
-          logo: "/images/landing/soid.png",
-          phoneNumber: "0812345678",
-          images: [
-            "/images/foundation/s1.png",
-            "/images/foundation/s2.png",
-            "/images/foundation/s3.png",
-            "/images/foundation/s4.png",
-            "/images/foundation/s5.png",
-            "/images/foundation/s6.png"
-          ],
-          socialLinks: {
-            facebook: "https://facebook.com/soidogfoundation",
-            instagram: "https://instagram.com/soidogfoundation",
-            website: "https://www.soidog.org"
-          },
-          address: "123 Phuket, Thailand",
-          about: "Soi Dog Foundation was established in 2003 in Phuket, Thailand, to help the street dogs and cats who had no one else to care for them. Over 100,000 dogs and cats have been sterilized since our founding, and many thousands more have been rescued from abuse, starvation, or injury.",
-          donationInfo: "You can donate to support our cause through bank transfer, credit card, or PayPal."
+        if (!foundationRes.ok) throw new Error('Failed to fetch foundation info');
+        if (!adoptedRes.ok) throw new Error('Failed to fetch adopted pets');
+        if (!availableRes.ok) throw new Error('Failed to fetch available pets');
+        if (!adoptReqRes.ok) throw new Error('Failed to fetch adoption requests');
+
+        const foundationJson = await foundationRes.json();
+        const adoptedJson = await adoptedRes.json();
+        const availableJson = await availableRes.json();
+        const adoptReqJson = await adoptReqRes.json();
+
+        console.log("adoptedJson", adoptedJson);
+        console.log("availableJson", availableJson);
+        console.log("foundationJson", foundationJson);
+        console.log("adoptReqJson", adoptReqJson);
+
+        // Map foundation
+        const f = foundationJson.data;
+        const foundationData: Foundation = {
+          id: 0,
+          name: f.foundationName,
+          description: f.bio || '',
+          logo: f.imageUrl || '/images/placeholder.png',
+          phoneNumber: '',
+          images: f.imageUrl ? [f.imageUrl] : [],
+          socialLinks: {},
+          address: f.address,
         };
+        setFoundation(foundationData);
 
-        // Mock pets data
-        const mockPets: Pet[] = [
-          {
-            id: 1,
-            name: "จิ๋วหลิว",
-            type: "แมว",
-            age: "2 เดือน",
-            image: "/images/foundation/s1.png",
-            isAdopted: false
-          },
-          {
-            id: 2,
-            name: "น้าโยก",
-            type: "แมว",
-            age: "1 ปี",
-            image: "/images/foundation/s2.png",
-            isAdopted: false
-          },
-          {
-            id: 3,
-            name: "มาการ์เย่",
-            type: "สุนัข",
-            age: "2 ปี",
-            image: "/images/foundation/s3.png",
-            isAdopted: false
-          },
-          {
-            id: 4,
-            name: "โบ๊ท",
-            type: "สุนัข",
-            age: "1 ปี",
-            image: "/images/foundation/s4.png",
-            isAdopted: false
-          },
-          {
-            id: 5,
-            name: "มิตโต้",
-            type: "แมว",
-            age: "2 เดือน",
-            image: "/images/foundation/s5.png",
-            isAdopted: true
-          },
-          {
-            id: 6,
-            name: "มี้เจน",
-            type: "แมว",
-            age: "1 ปี",
-            image: "/images/foundation/s6.png",
-            isAdopted: true
-          },
-          {
-            id: 7,
-            name: "ไทย",
-            type: "สุนัข",
-            age: "2 ปี",
-            image: "/images/foundation/s1.png",
-            isAdopted: true
-          },
-          {
-            id: 8,
-            name: "มีมี่",
-            type: "สุนัข",
-            age: "4 เดือน",
-            image: "/images/foundation/s4.png",
-            isAdopted: true
-          }
+        // Map pets
+        const mapPet = (p: any, adopted: boolean): Pet => ({
+          id: p.petId,
+          name: p.name,
+          type: (p.specie || 'หมา') as 'หมา' | 'แมว',
+          age: p.age,
+          image: p.imageUrl,
+          isAdopted: adopted,
+        });
+
+        const petsData: Pet[] = [
+          ...adoptedJson.data.map((p: any) => mapPet(p, true)),
+          ...availableJson.data.map((p: any) => mapPet(p, false)),
         ];
+        setPets(petsData);
 
-        // Mock adoption requests data
-        const mockAdoptionRequests: AdoptionRequest[] = [
-          {
-            id: 1,
-            userId: 101,
-            petId: 3,
-            petName: "มาการ์เย่",
-            petType: "สุนัข",
-            petAge: "9 เดือน",
-            userName: "วินเกอร์ สองแผ่นดิน",
-            userImage: "/images/foundation/s2.png",
-            date: "2025-05-01",
-            status: "pending"
-          },
-          {
-            id: 2,
-            userId: 102,
-            petId: 1,
-            petName: "จิ๋วหลิว",
-            petType: "แมว",
-            petAge: "11 เดือน",
-            userName: "เจอ สถิตย์",
-            userImage: "/images/foundation/s3.png",
-            date: "2025-05-03",
-            status: "pending"
-          },
-          {
-            id: 3,
-            userId: 103,
-            petId: 4,
-            petName: "น้าโยก",
-            petType: "แมว",
-            petAge: "11 เดือน",
-            userName: "เจอ สถิตย์",
-            userImage: "/images/foundation/s5.png",
-            date: "2025-05-05",
-            status: "pending"
-          },
-          {
-            id: 4,
-            userId: 104,
-            petId: 2,
-            petName: "น้าโยก",
-            petType: "แมว",
-            petAge: "11 เดือน",
-            userName: "เจอ สถิตย์",
-            userImage: "/images/foundation/s6.png",
-            date: "2025-05-07",
-            status: "pending"
-          }
-        ];
-
-        // Simulate API call delay
-        setTimeout(() => {
-          setFoundation(mockFoundation);
-          setPets(mockPets);
-          setAdoptionRequests(mockAdoptionRequests);
-          setLoading(false);
-        }, 500);
-
-      } catch (error) {
-        console.error('Error fetching foundation details:', error);
+        // Map adoption requests
+        const adoptionData: AdoptionRequest[] = adoptReqJson.data.map((item: any, idx: number) => ({
+          id: idx,
+          userId: item.userInfo.userId,
+          petId: item.petInfo.petId,
+          petName: item.petInfo.name,
+          petType: (item.petInfo.specie || 'หมา') as 'หมา' | 'แมว',
+          petAge: item.petInfo.age,
+          userName: `${item.userInfo.firstname} ${item.userInfo.lastname}`.trim(),
+          userImage: item.userInfo.imageUrl || '/images/placeholder.png',
+          date: '',
+          status: 'pending',
+        }));
+        setAdoptionRequests(adoptionData);
+      } catch (err: any) {
+        console.error(err);
         setError('Failed to load foundation details');
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchFoundationDetail();
+    fetchData();
   }, []);
 
-  const handleAddPet = (petData: any) => {
-    // In a real app, this would send the data to your API
-    console.log('New pet data:', petData);
+  const handleAddPet = async (petData: any) => {
 
-    // For now, let's simulate adding a pet by adding it to the state
-    const newPet: Pet = {
-      id: Math.max(...pets.map(p => p.id)) + 1, // Generate a new ID
-      name: petData.name,
-      type: petData.type,
-      age: petData.age,
-      image: petData.image ? URL.createObjectURL(petData.image) : '/images/foundation/s1.png',
-      isAdopted: false,
-    };
+    try {
+      // 1. Upload image if provided
+      let imageId: number | undefined;
+      if (petData.image) {
+        const uploadRes = await api.upload.image(petData.image);
+        if (uploadRes.data.success) {
+          imageId = ((uploadRes.data.data as any).imageId || ((uploadRes.data.data as any).id || 0));
+        }
+      }
 
-    setPets([...pets, newPet]);
+      // 2. Construct request body for creating pet
+      const body = {
+        active: 1,
+        age: parseInt(petData.age) || 0,
+        allergic: petData.allergic || '',
+        foodAllergy: petData.foodAllergy || '',
+        gender: petData.gender,
+        imageId: imageId as number,
+        name: petData.name,
+        other: petData.other || '',
+        petFriendly: petData.petFriendly,
+        spaceRequired: petData.spaceRequired,
+        specialCareNeed: petData.specialCareNeed,
+        sterilization: petData.sterilization,
+        vaccination: petData.vaccination || '',
+        weight: parseFloat(petData.weight) || 0,
+      } as any;
+
+      const createRes = await api.pet.createPet(body);
+      if (createRes.data.success) {
+        // Refresh pet list
+        const petsRes = await api.foundation.getFoundationPets();
+        if (petsRes.data.success) {
+          const petsData: Pet[] = petsRes.data.data.map((p: any) => ({
+            id: p.petId,
+            name: p.name,
+            type: p.species || 'หมา',
+            age: p.age,
+            image: p.imageUrl,
+            isAdopted: p.status === 'Adopted',
+          }));
+          setPets(petsData);
+        }
+      }
+    } catch (err) {
+      console.error('Error adding new pet:', err);
+    }
+    setShowAddPetModal(false);
   };
+
 
   if (loading) {
     return (

@@ -4,10 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/utils/api";
 import { FaCamera, FaArrowLeft, FaExclamationCircle } from "react-icons/fa";
+import toast from "react-hot-toast";
+// Cookies
+import Cookies from "js-cookie";
 
 // Define the upload response interface
 interface UploadResponse {
@@ -21,10 +23,9 @@ interface UploadResponse {
 
 export default function EditProfile() {
   const router = useRouter();
-  const { data: session } = useSession();
   const { isAuthenticated, loading, user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +37,7 @@ export default function EditProfile() {
     firstname: "",
     lastname: "",
     bio: "",
+    birthday: "",
     phoneNumber: "",
     province: "",
     occupation: "",
@@ -45,33 +47,34 @@ export default function EditProfile() {
     newPassword: "",
     confirmPassword: "",
   });
-  
+
   // Fetch user data on component mount
   useEffect(() => {
     if (!isAuthenticated && !loading) {
       router.push("/login?callbackUrl=" + encodeURIComponent(window.location.href));
       return;
     }
-    
-    if (isAuthenticated && session?.accessToken) {
+
+    if (isAuthenticated) {
       fetchUserData();
     }
-  }, [isAuthenticated, loading, session, router]);
-  
+  }, [isAuthenticated, loading, router]);
+
   const fetchUserData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const response = await api.user.getInfo();
-      
+
       if (response.data.success) {
         const userInfo = response.data.data;
-        
+
         setFormData({
           firstname: userInfo.firstname || "",
           lastname: userInfo.lastname || "",
           bio: userInfo.bio || "",
+          birthday: userInfo.birthday || "",
           phoneNumber: userInfo.phoneNumber || "",
           province: userInfo.province || "",
           occupation: userInfo.occupation || "",
@@ -81,7 +84,7 @@ export default function EditProfile() {
           newPassword: "",
           confirmPassword: "",
         });
-        
+
         // Set profile image if available
         if (userInfo.imageUrl) {
           setProfileImagePreview(userInfo.imageUrl);
@@ -112,13 +115,13 @@ export default function EditProfile() {
       fileInputRef.current.click();
     }
   };
-  
+
   // Handle profile image change
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setProfileImageFile(file);
-      
+
       // Create a preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -133,35 +136,35 @@ export default function EditProfile() {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-    
+
     try {
       // First, upload profile image if a new one is selected
-      let uploadedImageUrl = "";
-      
+      let uploadedImageId: number | null = null;
+
       if (profileImageFile) {
         const uploadResponse = await api.upload.image(profileImageFile);
-        
+
         if (uploadResponse.data.success) {
-          // First cast to unknown to avoid type conflicts, then to our interface
-          const uploadData = uploadResponse.data.data as unknown as { url: string };
-          uploadedImageUrl = uploadData.url;
+          const uploadData = uploadResponse.data.data as unknown as { fileId: number };
+          uploadedImageId = uploadData.fileId;
         } else {
           throw new Error("Failed to upload profile image");
         }
       }
-      
+
       // Prepare update payload
       const updatePayload: any = {};
-      
+
       // Only include fields with values
       if (formData.firstname) updatePayload.firstname = formData.firstname;
       if (formData.lastname) updatePayload.lastname = formData.lastname;
       if (formData.bio) updatePayload.bio = formData.bio;
       if (formData.phoneNumber) updatePayload.phoneNumber = formData.phoneNumber;
       if (formData.province) updatePayload.province = formData.province;
+      if (formData.birthday) updatePayload.birthday = formData.birthday;
       if (formData.occupation) updatePayload.occupation = formData.occupation;
       if (formData.accommodateType) updatePayload.accommodateType = formData.accommodateType;
-      
+
       // Handle number conversion properly
       if (formData.numOfPets) {
         const numPets = parseInt(formData.numOfPets);
@@ -169,15 +172,15 @@ export default function EditProfile() {
           updatePayload.numOfPets = numPets;
         }
       }
-      
-      // Add image URL if uploaded
-      if (uploadedImageUrl) {
-        updatePayload.imageUrl = uploadedImageUrl;
+
+      // Add imageId if uploaded
+      if (uploadedImageId) {
+        updatePayload.imageId = uploadedImageId;
       }
-      
+
       // Submit update to API
       const updateResponse = await api.user.updateInfo(updatePayload);
-      
+
       if (updateResponse.data.success) {
         // Show success message and redirect
         alert("Profile updated successfully!");
@@ -226,18 +229,18 @@ export default function EditProfile() {
                 <span>{error}</span>
               </div>
             )}
-            
+
             {/* Profile Picture */}
             <div className="flex flex-col items-center mb-8">
               <div className="relative w-32 h-32">
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
                   accept="image/*"
                   onChange={handleProfileImageChange}
                 />
-                <div 
+                <div
                   className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-lg cursor-pointer"
                   onClick={handleProfileImageClick}
                 >
@@ -249,7 +252,7 @@ export default function EditProfile() {
                     className="object-cover w-full h-full"
                   />
                 </div>
-                <div 
+                <div
                   className="absolute bottom-0 right-0 bg-orange-400 rounded-full p-2 shadow-md cursor-pointer"
                   onClick={handleProfileImageClick}
                 >
@@ -262,7 +265,7 @@ export default function EditProfile() {
             {/* Personal Information */}
             <div className="mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="firstname" className="block text-sm font-medium text-gray-700 mb-1">
@@ -278,7 +281,7 @@ export default function EditProfile() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="lastname" className="block text-sm font-medium text-gray-700 mb-1">
                     Last Name
@@ -293,7 +296,7 @@ export default function EditProfile() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
                     Phone Number
@@ -307,7 +310,7 @@ export default function EditProfile() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none transition-colors"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-1">
                     Province
@@ -321,7 +324,7 @@ export default function EditProfile() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none transition-colors"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="occupation" className="block text-sm font-medium text-gray-700 mb-1">
                     Occupation
@@ -335,7 +338,7 @@ export default function EditProfile() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none transition-colors"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="numOfPets" className="block text-sm font-medium text-gray-700 mb-1">
                     Number of Pets
@@ -350,26 +353,9 @@ export default function EditProfile() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none transition-colors"
                   />
                 </div>
-                
-                <div>
-                  <label htmlFor="accommodateType" className="block text-sm font-medium text-gray-700 mb-1">
-                    Accommodation Type
-                  </label>
-                  <select
-                    id="accommodateType"
-                    name="accommodateType"
-                    value={formData.accommodateType}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none transition-colors"
-                  >
-                    <option value="">Select accommodation type</option>
-                    <option value="SingleFamilyHomes">Single Family Home</option>
-                    <option value="TownHouse">Town House</option>
-                    <option value="ShopHouses">Shop House</option>
-                    <option value="ApartmentAndCondo">Apartment/Condo</option>
-                  </select>
-                </div>
-                
+
+
+
                 <div className="md:col-span-2">
                   <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
                     Bio
@@ -386,101 +372,7 @@ export default function EditProfile() {
               </div>
             </div>
 
-            {/* Change Password */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Change Password</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Current Password
-                  </label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    name="currentPassword"
-                    value={formData.currentPassword}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none transition-colors"
-                  />
-                </div>
-                
-                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                      New Password
-                    </label>
-                    <input
-                      type="password"
-                      id="newPassword"
-                      name="newPassword"
-                      value={formData.newPassword}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none transition-colors"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                      Confirm New Password
-                    </label>
-                    <input
-                      type="password"
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-400 outline-none transition-colors"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Notification Preferences */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Notification Preferences</h2>
-              
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="emailNotifications"
-                    name="emailNotifications"
-                    className="w-4 h-4 text-orange-400 border-gray-300 rounded focus:ring-orange-300"
-                    defaultChecked
-                  />
-                  <label htmlFor="emailNotifications" className="ml-2 text-gray-700">
-                    Email notifications for new campaigns and events
-                  </label>
-                </div>
-                
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="smsNotifications"
-                    name="smsNotifications"
-                    className="w-4 h-4 text-orange-400 border-gray-300 rounded focus:ring-orange-300"
-                    defaultChecked
-                  />
-                  <label htmlFor="smsNotifications" className="ml-2 text-gray-700">
-                    SMS notifications for donation confirmations
-                  </label>
-                </div>
-                
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="marketingEmails"
-                    name="marketingEmails"
-                    className="w-4 h-4 text-orange-400 border-gray-300 rounded focus:ring-orange-300"
-                  />
-                  <label htmlFor="marketingEmails" className="ml-2 text-gray-700">
-                    Marketing emails about new features and promotions
-                  </label>
-                </div>
-              </div>
-            </div>
 
             {/* Form Actions */}
             <div className="flex flex-col sm:flex-row gap-4 justify-end">

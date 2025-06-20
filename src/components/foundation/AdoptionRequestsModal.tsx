@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { useState } from 'react';
+import api from '@/utils/api';
 import toast from 'react-hot-toast';
 import AdoptionRequestItem from './AdoptionRequestItem';
 
@@ -8,7 +9,7 @@ interface AdoptionRequest {
   userId: number;
   petId: number;
   petName: string;
-  petType: 'สุนัข' | 'แมว';
+  petType: 'หมา' | 'แมว';
   petAge: string;
   userName: string;
   userImage: string;
@@ -28,16 +29,41 @@ const AdoptionRequestsModal = ({ isOpen, onClose, adoptionRequests }: AdoptionRe
   if (!isOpen) return null;
 
   const handleBack = () => setSelectedRequest(null);
-  const handleApprove = () => {
-    toast.success('คำขอได้รับการอนุมัติแล้ว');
-    console.log('approve', selectedRequest);
-    handleBack();
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://giveapaw.ivelse.com/api/v1';
+
+  const getToken = () =>
+    (typeof window !== 'undefined' && (localStorage.getItem('token') || '')) || '';
+
+  const patchStatus = async (status: string) => {
+    console.log("selectedRequest", selectedRequest);
+    if (!selectedRequest) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/user/foundation/adopted-request/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          petId: selectedRequest.petId,
+          userId: selectedRequest.userId,
+          status,
+        }),
+      });
+      if (!res.ok) throw new Error('request failed');
+      toast.success(status === 'ได้รับการอนุมัติให้รับเลี้ยง' ? 'คำขอได้รับการอนุมัติแล้ว' : 'คำขอถูกปฏิเสธแล้ว');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error('ไม่สามารถอัปเดตสถานะคำขอได้');
+    } finally {
+      handleBack();
+    }
   };
-  const handleReject = () => {
-    toast.error('คำขอถูกปฏิเสธ');
-    console.log('reject', selectedRequest);
-    handleBack();
-  };
+
+  const handleApprove = () => patchStatus('ได้รับการอนุมัติให้รับเลี้ยง');
+  const handleReject = () => patchStatus('คำขอถูกปฏิเสธ');
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">

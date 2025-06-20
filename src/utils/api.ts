@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import { getSession } from "next-auth/react";
+import Cookies from 'js-cookie';
 
 // Base configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
@@ -16,50 +16,36 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
     async (config) => {
         try {
-            const session = await getSession();
-            const token = session?.accessToken;
+            // Get token from cookies or localStorage
+            let token = Cookies.get('login');
+
+            // If not in cookies, try localStorage
+            if (!token) {
+                const localToken = localStorage.getItem('token');
+                if (localToken) {
+                    token = localToken;
+                }
+            }
 
             // Debug token information for troubleshooting
             console.debug("API Request:", {
                 url: config.url,
                 hasToken: !!token,
-                tokenLength: token ? token.length : 0, 
+                tokenLength: token ? token.length : 0,
                 tokenPreview: token ? `${token.substring(0, 5)}...` : null,
             });
-            
+
             if (token) {
-                // 1. Set Authorization header - this is standard for JWT
+                // Set Authorization header with Bearer token
                 config.headers = config.headers || {};
                 config.headers['Authorization'] = `Bearer ${token}`;
-                
-                // 2. Set cookies for authentication - match backend expectations
-                // Setting HttpOnly false so JS can access it (needed for our implementation)
-                // The cookie name 'login' is what the backend expects based on curl test
-                if (typeof window !== 'undefined') {
-                    document.cookie = `login=${token}; path=/; max-age=86400; SameSite=Lax`;
-                }
-                
-                // 3. Critical: ensure credentials are included with requests
-                // This ensures cookies are sent with cross-origin requests
+
+                // Ensure credentials (cookies) are included with requests
                 config.withCredentials = true;
-                
+
                 console.debug("✓ Authentication set for request to:", config.url);
             } else {
-                console.warn("❌ No authentication token available for request to:", config.url);
-                // Try to get token from cookie as fallback (browser refresh case)
-                if (typeof window !== 'undefined') {
-                    const cookies = document.cookie.split('; ');
-                    const loginCookie = cookies.find(cookie => cookie.startsWith('login='));
-                    if (loginCookie) {
-                        const cookieToken = loginCookie.split('=')[1];
-                        if (cookieToken) {
-                            console.debug("🔄 Using token from cookie instead of session");
-                            config.headers = config.headers || {};
-                            config.headers['Authorization'] = `Bearer ${cookieToken}`;
-                            config.withCredentials = true;
-                        }
-                    }
-                }
+                console.warn("❌ No authentication token found for request to:", config.url);
             }
         } catch (error) {
             console.error("Error setting auth token:", error);
@@ -93,7 +79,7 @@ apiClient.interceptors.response.use(
                     hasAuthHeader: !!error.config?.headers?.Authorization
                 }
             });
-            
+
             // Special handling for authentication errors
             if (error.response.status === 401) {
                 console.warn("Authentication error: Token may be invalid or expired");
@@ -237,7 +223,6 @@ export interface DonateChannel {
 }
 
 export interface FoundationInfo {
-    foundationId: number;
     foundationName: string;
     address: string;
     bio: string | null;
@@ -341,6 +326,7 @@ const api = {
         getPetProfile: (petId: number) => apiClient.get<InfoResponse<Pet>>(`/pet/${petId}/info`),
         getPetAdoptionRequests: (petId: number) => apiClient.get<InfoResponse<UserMetadata[]>>(`/pet/${petId}/adoption-request`),
         getPetSuggest: () => apiClient.get<InfoResponse<PetMetadata[]>>("/pet/suggest"),
+        updatePet: (petId: number, body: AddPetBody) => apiClient.put<InfoResponse<UserMetadata[]>>(`/pet/${petId}`, body),
     },
     news: {
         getList: () => apiClient.get<InfoResponse<News[]>>("/news"),
@@ -352,6 +338,7 @@ const api = {
         image: (file: File) => {
             const formData = new FormData();
             formData.append("file", file);
+            formData.append("type", "image");
             return apiClient.post<InfoResponse<UploadResponse>>("/upload", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
@@ -359,16 +346,23 @@ const api = {
     },
     foundation: {
         getList: () => apiClient.get<InfoResponse<FoundationInfo[]>>("/user/foundation/list"),
+        getFoundationInfo: () => apiClient.get<InfoResponse<FoundationInfo>>("/user/foundation/info"),
+        getFoundationPets: () => apiClient.get<InfoResponse<Pet[]>>("/user/foundation/pets"),
+        updateAdoptRequestStatus: (body: { petId: number; userId: number; status: string }) =>
+            apiClient.patch<InfoResponse<string>>("/user/foundation/adopted-request/status", body),
     },
 
     user: {
-        updateInfo: (body: UpdateUserBody) => apiClient.post<InfoResponse<string>>("/user", body),
+        updateInfo: (body: UpdateUserBody) => apiClient.patch<InfoResponse<string>>("/user", body),
         getInfo: () => apiClient.get<InfoResponse<UserInfo>>("/user/info"),
         getMetadata: () => apiClient.get<InfoResponse<UserMetadata>>("/user/metadata"),
         requestAdoption: (body: AdoptRequestBody) => apiClient.post<InfoResponse<string>>("/user/adopt", body),
         getAdoptionRequests: () => apiClient.get<InfoResponse<AdoptionRequest[]>>("/user/adoption-request"),
+        getPersonalityQuestions: () => apiClient.get<InfoResponse<any[]>>("/user/personality-question/list"),
         getFoundationInfo: () => apiClient.get<InfoResponse<FoundationInfo>>("/user/foundation/info"),
         getFoundationPets: () => apiClient.get<InfoResponse<Pet[]>>("/user/foundation/pets"),
+        updateAdoptRequestStatus: (body: { petId: number; userId: number; status: string }) =>
+            apiClient.patch<InfoResponse<string>>("/user/foundation/adopted-request/status", body),
     },
 };
 

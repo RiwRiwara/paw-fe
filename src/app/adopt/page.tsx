@@ -152,7 +152,6 @@ export default function Adopt() {
     }
   }, [searchQuery, pets]);
 
-  const last_pets = pets.slice(0, 3);
 
   return (
     <>
@@ -289,23 +288,11 @@ export default function Adopt() {
                       <img
                         src={imageUrl || "https://placehold.co/400x300?text=No+Image"}
                         alt={name}
-                        width={400}
-                        height={300}
-                        className="rounded-t-xl"
+                        className="absolute inset-0 w-full h-full object-cover rounded-t-xl"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=No+Image";
                         }}
                       />
-                      <button
-                        onClick={() => toggleLike(petId)}
-                        className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:scale-110 transition-transform z-10"
-                      >
-                        {isLiked ? (
-                          <FaHeart className="text-red-500 text-xl" />
-                        ) : (
-                          <FaRegHeart className="text-gray-500 text-xl hover:text-red-500" />
-                        )}
-                      </button>
                     </div>
                     <div className="p-4 flex flex-col items-center flex-grow">
                       <h3 className="text-xl font-semibold text-gray-800 mt-3 mb-1">{name}</h3>

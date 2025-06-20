@@ -10,19 +10,20 @@ export default function Home() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
-    // const fetchCampaigns = async () => {
-    //   try {
-    //     const response = await api.campaign.getList();
-    //     console.log(response.data);
-    //     if (response.data.success) {
-    //       setCampaigns(response.data.data);
-    //     }
-    //   } catch (error) {
-    //     console.error('Error fetching campaigns:', error);
-    //   }
-    // };
+    const fetchCampaigns = async () => {
+      try {
+        const response = await api.campaign.getList();
+        console.log(response.data);
+        if (response.data.success) {
+          console.log(response.data.data);
+          setCampaigns(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching campaigns:', error);
+      }
+    };
 
-    // fetchCampaigns();
+    fetchCampaigns();
   }, []);
 
 
@@ -178,16 +179,15 @@ export default function Home() {
           <div className="w-24 h-1 bg-primary-pink mx-auto mb-4"></div>
           <p className="text-primary-400 max-w-2xl mx-auto">Support our ongoing campaigns and help make a difference in the lives of animals in need.</p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div className="">
           {campaigns.length > 0 ? campaigns.map((campaign, index) => (
             <div key={index} className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
               <CampaignCard
                 title={campaign.campaignName}
                 description={campaign.description}
                 donationLabel="Donate"
-                donationAmount={campaign.currentAmount.toString()}
-                donationGoal={campaign.goalAmount.toString()}
+                donationGoal={campaign.goalAmount}
                 campaignImage="/images/landing/camp2.png"
                 rightSideImage="/images/landing/new5.png"
                 isNew={index === 0}
@@ -204,7 +204,7 @@ export default function Home() {
             </div>
           )}
         </div>
-        
+
         {campaigns.length > 0 && (
           <div className="text-center mt-10">
             <button className="bg-primary-red hover:bg-primary-700 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
@@ -231,18 +231,18 @@ export default function Home() {
               </div>
             </div>
             <div className="md:w-1/2">
-              <Image 
-                src="/images/landing/bot.png" 
-                alt="Contact illustration" 
-                width={500} 
+              <Image
+                src="/images/landing/bot.png"
+                alt="Contact illustration"
+                width={500}
                 height={400}
-                className="object-contain mx-auto" 
+                className="object-contain mx-auto"
               />
             </div>
           </div>
         </div>
       </div>
-      
+
 
 
     </div>

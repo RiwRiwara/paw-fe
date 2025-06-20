@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/utils/api";
+import { AddPetBody } from "@/utils/types";
 
 export default function EditPet() {
   const { isAuthenticated, loading } = useAuth();
@@ -54,9 +55,9 @@ export default function EditPet() {
             foodAllergy: pet.foodAllergy || "",
             vaccination: pet.vaccination || "",
             sterilization: pet.sterilization,
-            aggressiveness: pet.aggressiveness.toString(),
-            playful: pet.playful.toString(),
-            sociable: pet.sociable.toString(),
+            aggressiveness: "0",
+            playful: "0",
+            sociable: "0",
             imageName: pet.imageUrl.split("/").pop() || "", // Extract filename from URL
             other: pet.other || "",
           });
@@ -91,7 +92,7 @@ export default function EditPet() {
         sociable: parseInt(formData.sociable),
         imageName: formData.imageName || "default.jpg",
         other: formData.other || undefined,
-      };
+      } as AddPetBody;
 
       const response = await api.pet.updatePet(parseInt(petId), payload);
       if (response.data.success) {

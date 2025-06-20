@@ -18,33 +18,48 @@ export default function PersonalityTest() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isCompleted, setIsCompleted] = useState<boolean>(false);
 
-    // Questions match the pet personality traits
-    const [questions, setQuestions] = useState<Question[]>([
-        {
-            id: 1,
-            text: "คุณชอบทำกิจกรรมกลางแจ้ง เช่น วิ่ง ปีนเขา หรือเดินเล่นเป็นประจำ และต้องการให้สัตว์เลี้ยงร่วมทำกิจกรรมกับคุณไหม ?",
-            trait: "active",
-            selected: null
-        },
-        {
-            id: 2,
-            text: "คุณมีพื้นที่กว้างพอให้สัตว์วิ่งเล่นได้ทุกวัน และต้องการสัตว์ที่มีพื้นที่เป็นปัจจัยสำคัญหรือไม่ ?",
-            trait: "spaceRequired",
-            selected: null
-        },
-        {
-            id: 3,
-            text: "คุณต้องการสัตว์ที่สามารถอยู่ร่วมกับสัตว์อื่นได้หรือไม่ ?",
-            trait: "petFriendly",
-            selected: null
-        },
-        {
-            id: 4,
-            text: "คุณสามารถเลี้ยงสัตว์ที่ต้องการอาหารพิเศษหรือการดูแลสุขภาพเฉพาะทางได้หรือไม่",
-            trait: "specialCareNeeds",
-            selected: null
-        }
-    ]);
+    // Personality questions fetched from backend
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [loadingQuestions, setLoadingQuestions] = useState<boolean>(true);
+
+    // fetch questions on mount
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            setLoadingQuestions(true);
+            const res = await api.user.getPersonalityQuestions();
+            console.log(res.data);
+            try {
+                if (res.data.success) {
+                    const mapTrait = (type: string): string => {
+                        switch (type) {
+                            case 'Active':
+                                return 'active';
+                            case 'Space Required':
+                                return 'spaceRequired';
+                            case 'Pet Friendly':
+                                return 'petFriendly';
+                            case 'Special Care Need':
+                                return 'specialCareNeed';
+                            default:
+                                return type.replace(/\s+/g, '').toLowerCase();
+                        }
+                    };
+
+                    const qList: Question[] = res.data.data.map((item: any) => ({
+                        id: item.QuestionId ?? item.questionId,
+                        text: item.Question ?? item.question,
+                        trait: mapTrait(item.PersonalityType ?? item.personalityType),
+                        selected: item.PersonalityAnswer ? item.PersonalityAnswer.answerValue : (item.personalityAnswer ? item.personalityAnswer.answerValue : null)
+                    }));
+                    setQuestions(qList);
+                    setLoadingQuestions(false);
+                }
+            } catch (err) {
+                console.error('Failed to load personality questions', err);
+            }
+        };
+        fetchQuestions();
+    }, []);
 
     const updateAnswer = (questionId: number, answer: boolean) => {
         setQuestions(prevQuestions =>
@@ -110,6 +125,22 @@ export default function PersonalityTest() {
         }
     };
 
+    if (loadingQuestions) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <p className="text-gray-500">กำลังโหลดคำถาม...</p>
+            </div>
+        );
+    }
+
+    if (questions.length === 0) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <p className="text-gray-500">ไม่พบคำถาม</p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col min-h-screen  mt-20">
             {/* Hero Section with Illustration */}
@@ -124,7 +155,7 @@ export default function PersonalityTest() {
 
             {/* Main Content */}
             <div className="flex-grow flex items-start justify-center px-4 py-12 sm:px-6 lg:px-8">
-                <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 md:p-8 border-2 border-yellow-500">
+                <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 md:p-8 border-2 ">
                     {!isCompleted ? (
                         <>
                             {/* Progress Indicator */}
@@ -144,7 +175,10 @@ export default function PersonalityTest() {
                             {/* Current Question */}
                             <div className="mb-8 text-center">
                                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-6">
-                                    {questions[currentStep].text}
+
+                                    {
+                                        questions[currentStep].text
+                                    }
                                 </h3>
 
                                 <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">

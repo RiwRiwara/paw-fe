@@ -1,10 +1,9 @@
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 
-import type { User as NextAuthUser } from "next-auth";
-
-// Define proper user type that's compatible with NextAuth's User
+// Define user type for our application
 type UserInfo = {
-  id: string;  // Required to match NextAuth User
+  id: string;
   email?: string | null;
   name?: string | null;
   image?: string | null;
@@ -24,22 +23,53 @@ interface AuthStatus {
 
 /**
  * Custom hook for authentication state management
- * Provides authentication status, user info, and token
+ * Provides authentication status, user info, and token from cookies
  */
 export const useAuth = (): AuthStatus => {
-  const { data: session, status } = useSession();
+  const [authStatus, setAuthStatus] = useState<AuthStatus>({
+    isAuthenticated: false,
+    isGuest: true,
+    user: null,
+    loading: true,
+    accessToken: null,
+    sessionStatus: "loading",
+  });
 
-  const isAuthenticated = !!session?.user && !!session?.accessToken;
-  const isGuest = !isAuthenticated;
-  const loading = status === "loading";
-  const accessToken = session?.accessToken || null;
 
-  return {
-    isAuthenticated,
-    isGuest,
-    user: session?.user || null,
-    loading,
-    accessToken,
-    sessionStatus: status,
-  };
+  useEffect(() => {
+    // Get token from cookies or localStorage
+    let token = Cookies.get('login');
+    if (!token) {
+      // If not in cookies, try localStorage
+      const localToken = localStorage.getItem('token');
+      if (localToken) {
+        token = localToken;
+      }
+    }
+    console.log("token", token);
+    
+    // Get user data from localStorage if available
+    let user: UserInfo | null = null;
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        user = JSON.parse(userData);
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+
+    const isAuthenticated = !!token && !!user;
+    
+    setAuthStatus({
+      isAuthenticated,
+      isGuest: !isAuthenticated,
+      user,
+      loading: false,
+      accessToken: token || null,
+      sessionStatus: isAuthenticated ? "authenticated" : "unauthenticated",
+    });
+  }, []);
+
+  return authStatus;
 };

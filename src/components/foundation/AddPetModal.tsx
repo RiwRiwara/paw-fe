@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 
 interface AddPetModalProps {
@@ -9,27 +10,41 @@ interface AddPetModalProps {
 
 interface PetFormData {
   name: string;
-  type: 'สุนัข' | 'แมว';
+  type: 'หมา' | 'แมว';
   age: string;
   description: string;
   image: File | null;
-  energyLevel: number;
-  spaceNeeds: number;
+  gender: 'Male' | 'Female';
+  allergic: string;
+  foodAllergy: string;
+  vaccination: string;
+  weight: number | '';
+  sterilization: boolean;
+  other: string;
+  /* ratings */
+  spaceRequired: number;
   petFriendly: number;
-  specialCare: number;
+  specialCareNeed: number;
 }
+
 
 const AddPetModal = ({ isOpen, onClose, onSubmit }: AddPetModalProps) => {
   const [petFormData, setPetFormData] = useState<PetFormData>({
     name: '',
-    type: 'สุนัข',
+    type: 'หมา',
     age: '',
     description: '',
     image: null,
-    energyLevel: 0,
-    spaceNeeds: 0,
+    gender: 'Male',
+    allergic: '',
+    foodAllergy: '',
+    vaccination: '',
+    weight: '',
+    sterilization: false,
+    other: '',
+    spaceRequired: 0,
     petFriendly: 0,
-    specialCare: 0
+    specialCareNeed: 0
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -60,14 +75,14 @@ const AddPetModal = ({ isOpen, onClose, onSubmit }: AddPetModalProps) => {
     }
   };
 
-  const handleRatingChange = (category: 'energyLevel' | 'spaceNeeds' | 'petFriendly' | 'specialCare', rating: number) => {
+  const handleRatingChange = (category: 'spaceRequired' | 'petFriendly' | 'specialCareNeed', rating: number) => {
     setPetFormData(prev => ({
       ...prev,
       [category]: rating
     }));
   };
 
-  const renderStarRating = (category: 'energyLevel' | 'spaceNeeds' | 'petFriendly' | 'specialCare', label: string) => {
+  const renderStarRating = (category: 'spaceRequired' | 'petFriendly' | 'specialCareNeed', label: string) => {
     const currentRating = petFormData[category];
     
     return (
@@ -96,20 +111,32 @@ const AddPetModal = ({ isOpen, onClose, onSubmit }: AddPetModalProps) => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(petFormData);
+    try {
+      await onSubmit(petFormData);
+      toast.success('เพิ่มข้อมูลสัตว์สำเร็จ');
+    } catch (err) {
+      console.error(err);
+      toast.error('เพิ่มข้อมูลสัตว์ไม่สำเร็จ');
+    }
     // Reset form after submission
     setPetFormData({
       name: '',
-      type: 'สุนัข',
+      type: 'หมา',
       age: '',
       description: '',
       image: null,
-      energyLevel: 0,
-      spaceNeeds: 0,
+      gender: 'Male',
+      allergic: '',
+      foodAllergy: '',
+      vaccination: '',
+      weight: '',
+      sterilization: false,
+      other: '',
+      spaceRequired: 0,
       petFriendly: 0,
-      specialCare: 0
+      specialCareNeed: 0
     });
     setImagePreview(null);
     onClose();
@@ -120,7 +147,7 @@ const AddPetModal = ({ isOpen, onClose, onSubmit }: AddPetModalProps) => {
       <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
         <div className="p-6 flex justify-between items-center border-b border-gray-200">
           <div className="flex items-center gap-2 justify-center w-full">
-            <div className="bg-rose-100 p-2 rounded-full">
+            <div className="bg-rose-50 p-2 rounded-full">
               <Image
                 src="/images/paw.png"
                 alt="Paw"
@@ -155,6 +182,19 @@ const AddPetModal = ({ isOpen, onClose, onSubmit }: AddPetModalProps) => {
             </div>
 
             <div>
+              <label className="block text-rose-700 mb-2">เพศ:</label>
+              <select
+                name="gender"
+                value={petFormData.gender}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
+              >
+                <option value="Male">ผู้</option>
+                <option value="Female">เมีย</option>
+              </select>
+            </div>
+
+            <div>
               <label className="block text-rose-700 mb-2">ประเภท:</label>
               <select
                 name="type"
@@ -163,7 +203,7 @@ const AddPetModal = ({ isOpen, onClose, onSubmit }: AddPetModalProps) => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
                 required
               >
-                <option value="สุนัข">สุนัข</option>
+                <option value="หมา">หมา</option>
                 <option value="แมว">แมว</option>
               </select>
             </div>
@@ -182,6 +222,70 @@ const AddPetModal = ({ isOpen, onClose, onSubmit }: AddPetModalProps) => {
             </div>
 
             <div>
+              <label className="block text-rose-700 mb-2">น้ำหนัก (กก.):</label>
+              <input
+                type="number"
+                name="weight"
+                value={petFormData.weight}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-rose-700 mb-2">วัคซีนที่ได้รับ:</label>
+              <input
+                type="text"
+                name="vaccination"
+                value={petFormData.vaccination}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-rose-700 mb-2">แพ้ยา/อาหาร:</label>
+              <input
+                type="text"
+                name="allergic"
+                value={petFormData.allergic}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-rose-700 mb-2">อาหารที่แพ้:</label>
+              <input
+                type="text"
+                name="foodAllergy"
+                value={petFormData.foodAllergy}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-rose-700 mb-2">อื่น ๆ:</label>
+              <textarea
+                name="other"
+                value={petFormData.other}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400 h-24"
+              ></textarea>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="sterilization"
+                checked={petFormData.sterilization}
+                onChange={(e) => setPetFormData(prev => ({ ...prev, sterilization: e.target.checked }))}
+              />
+              <label className="text-rose-700">ทำหมันแล้ว</label>
+            </div>
+
+            <div>
               <label className="block text-rose-700 mb-2">คำอธิบาย:</label>
               <textarea
                 name="description"
@@ -195,10 +299,9 @@ const AddPetModal = ({ isOpen, onClose, onSubmit }: AddPetModalProps) => {
             <div className="bg-[#FFF3F3] p-4 rounded-xl">
               <p className="text-rose-700 font-medium mb-3">สถานะเบื้องต้น</p>
               <div className="space-y-3">
-                {renderStarRating('energyLevel', 'พลังงานสูง')}
-                {renderStarRating('spaceNeeds', 'ต้องการพื้นที่กว้าง')}
+                {renderStarRating('spaceRequired', 'ต้องการพื้นที่กว้าง')}
                 {renderStarRating('petFriendly', 'เป็นมิตรกับสัตว์อื่น')}
-                {renderStarRating('specialCare', 'ต้องการการดูแลพิเศษ')}
+                {renderStarRating('specialCareNeed', 'ต้องการการดูแลพิเศษ')}
               </div>
             </div>
 
@@ -230,7 +333,7 @@ const AddPetModal = ({ isOpen, onClose, onSubmit }: AddPetModalProps) => {
                 type="submit"
                 className="bg-rose-500 hover:bg-rose-600 text-white px-6 py-2 rounded-full transition-colors"
               >
-                บันทึก
+                เพิ่มข้อมูลสัตว์
               </button>
             </div>
           </form>
