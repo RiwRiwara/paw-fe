@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { useState } from 'react';
+import api from '@/utils/api';
 import toast from 'react-hot-toast';
 import AdoptionRequestItem from './AdoptionRequestItem';
 
@@ -28,14 +29,36 @@ const AdoptionRequestsModal = ({ isOpen, onClose, adoptionRequests }: AdoptionRe
   if (!isOpen) return null;
 
   const handleBack = () => setSelectedRequest(null);
-  const handleApprove = () => {
-    toast.success('คำขอได้รับการอนุมัติแล้ว');
-    console.log('approve', selectedRequest);
+  const handleApprove = async () => {
+    if (!selectedRequest) return;
+    try {
+      await api.foundation.updateAdoptRequestStatus({
+        petId: selectedRequest.petId,
+        userId: selectedRequest.userId,
+        status: 'ได้รับการรับเลี้ยงแล้ว',
+      });
+      toast.success('คำขอได้รับการอนุมัติแล้ว');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error('ไม่สามารถอนุมัติคำขอได้');
+    }
     handleBack();
   };
-  const handleReject = () => {
-    toast.error('คำขอถูกปฏิเสธ');
-    console.log('reject', selectedRequest);
+  const handleReject = async () => {
+    if (!selectedRequest) return;
+    try {
+      await api.foundation.updateAdoptRequestStatus({
+        petId: selectedRequest.petId,
+        userId: selectedRequest.userId,
+        status: 'ถูกรปฏิเสธ',
+      });
+      toast.success('ปฏิเสธคำขอแล้ว');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error('ไม่สามารถปฏิเสธคำขอได้');
+    }
     handleBack();
   };
 

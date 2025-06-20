@@ -69,7 +69,7 @@ export default function FoundationDetail() {
       setLoading(true);
       try {
         // Parallel requests using native fetch; cookies will be sent with `credentials: "include"`
-        const [foundationRes, adoptedRes, availableRes] = await Promise.all([
+        const [foundationRes, adoptedRes, availableRes, adoptReqRes] = await Promise.all([
           fetch(`${API_BASE_URL}/user/foundation/info`, {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -88,15 +88,23 @@ export default function FoundationDetail() {
             },
             credentials: 'include'
           }),
+          fetch(`${API_BASE_URL}/user/foundation/adopted-request/list`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            credentials: 'include'
+          }),
         ]);
 
         if (!foundationRes.ok) throw new Error('Failed to fetch foundation info');
         if (!adoptedRes.ok) throw new Error('Failed to fetch adopted pets');
         if (!availableRes.ok) throw new Error('Failed to fetch available pets');
+        if (!adoptReqRes.ok) throw new Error('Failed to fetch adoption requests');
 
         const foundationJson = await foundationRes.json();
         const adoptedJson = await adoptedRes.json();
         const availableJson = await availableRes.json();
+        const adoptReqJson = await adoptReqRes.json();
 
         console.log("adoptedJson", adoptedJson);
         console.log("availableJson", availableJson);
@@ -132,7 +140,20 @@ export default function FoundationDetail() {
         ];
         setPets(petsData);
 
-        // TODO: fetch adoption requests endpoint when available
+        // Map adoption requests
+        const adoptionData: AdoptionRequest[] = adoptReqJson.data.map((item: any, idx: number) => ({
+          id: idx,
+          userId: item.userInfo.userId,
+          petId: item.petInfo.petId,
+          petName: item.petInfo.name,
+          petType: (item.petInfo.specie || 'หมา') as 'หมา' | 'แมว',
+          petAge: item.petInfo.age,
+          userName: `${item.userInfo.firstname} ${item.userInfo.lastname}`.trim(),
+          userImage: item.userInfo.imageUrl || '/images/placeholder.png',
+          date: '',
+          status: 'pending',
+        }));
+        setAdoptionRequests(adoptionData);
       } catch (err: any) {
         console.error(err);
         setError('Failed to load foundation details');

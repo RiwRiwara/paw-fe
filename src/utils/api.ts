@@ -347,6 +347,8 @@ const api = {
         getList: () => apiClient.get<InfoResponse<FoundationInfo[]>>("/user/foundation/list"),
         getFoundationInfo: () => apiClient.get<InfoResponse<FoundationInfo>>("/user/foundation/info"),
         getFoundationPets: () => apiClient.get<InfoResponse<Pet[]>>("/user/foundation/pets"),
+        updateAdoptRequestStatus: (body: { petId: number; userId: number; status: string }) =>
+            apiClient.patch<InfoResponse<string>>("/user/foundation/adopted-request/status", body),
     },
 
     user: {
@@ -357,6 +359,8 @@ const api = {
         getAdoptionRequests: () => apiClient.get<InfoResponse<AdoptionRequest[]>>("/user/adoption-request"),
         getFoundationInfo: () => apiClient.get<InfoResponse<FoundationInfo>>("/user/foundation/info"),
         getFoundationPets: () => apiClient.get<InfoResponse<Pet[]>>("/user/foundation/pets"),
+        updateAdoptRequestStatus: (body: { petId: number; userId: number; status: string }) =>
+            apiClient.patch<InfoResponse<string>>("/user/foundation/adopted-request/status", body),
     },
 };
 
