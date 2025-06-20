@@ -137,8 +137,10 @@ export interface FoundationInfo {
 
 export interface UploadResponse {
     filename: string;
-    imageId: number;
-    imageUrl: string;
+    imageId?: number; // original field name
+    id?: number; // new field name from backend
+    imageUrl?: string;
+    url?: string;
 }
 
 export interface Pet {

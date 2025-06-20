@@ -109,6 +109,7 @@ export default function FoundationDetail() {
         console.log("adoptedJson", adoptedJson);
         console.log("availableJson", availableJson);
         console.log("foundationJson", foundationJson);
+        console.log("adoptReqJson", adoptReqJson);
 
         // Map foundation
         const f = foundationJson.data;
@@ -173,7 +174,7 @@ export default function FoundationDetail() {
       if (petData.image) {
         const uploadRes = await api.upload.image(petData.image);
         if (uploadRes.data.success) {
-          imageId = uploadRes.data.data.imageId;
+          imageId = ((uploadRes.data.data as any).imageId || ((uploadRes.data.data as any).id || 0));
         }
       }
 

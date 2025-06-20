@@ -326,6 +326,7 @@ const api = {
         getPetProfile: (petId: number) => apiClient.get<InfoResponse<Pet>>(`/pet/${petId}/info`),
         getPetAdoptionRequests: (petId: number) => apiClient.get<InfoResponse<UserMetadata[]>>(`/pet/${petId}/adoption-request`),
         getPetSuggest: () => apiClient.get<InfoResponse<PetMetadata[]>>("/pet/suggest"),
+        updatePet: (petId: number, body: AddPetBody) => apiClient.put<InfoResponse<UserMetadata[]>>(`/pet/${petId}`, body),
     },
     news: {
         getList: () => apiClient.get<InfoResponse<News[]>>("/news"),
@@ -352,11 +353,12 @@ const api = {
     },
 
     user: {
-        updateInfo: (body: UpdateUserBody) => apiClient.post<InfoResponse<string>>("/user", body),
+        updateInfo: (body: UpdateUserBody) => apiClient.patch<InfoResponse<string>>("/user", body),
         getInfo: () => apiClient.get<InfoResponse<UserInfo>>("/user/info"),
         getMetadata: () => apiClient.get<InfoResponse<UserMetadata>>("/user/metadata"),
         requestAdoption: (body: AdoptRequestBody) => apiClient.post<InfoResponse<string>>("/user/adopt", body),
         getAdoptionRequests: () => apiClient.get<InfoResponse<AdoptionRequest[]>>("/user/adoption-request"),
+        getPersonalityQuestions: () => apiClient.get<InfoResponse<any[]>>("/user/personality-question/list"),
         getFoundationInfo: () => apiClient.get<InfoResponse<FoundationInfo>>("/user/foundation/info"),
         getFoundationPets: () => apiClient.get<InfoResponse<Pet[]>>("/user/foundation/pets"),
         updateAdoptRequestStatus: (body: { petId: number; userId: number; status: string }) =>

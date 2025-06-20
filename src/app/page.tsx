@@ -180,15 +180,14 @@ export default function Home() {
           <p className="text-primary-400 max-w-2xl mx-auto">Support our ongoing campaigns and help make a difference in the lives of animals in need.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="">
           {campaigns.length > 0 ? campaigns.map((campaign, index) => (
             <div key={index} className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
               <CampaignCard
                 title={campaign.campaignName}
                 description={campaign.description}
                 donationLabel="Donate"
-                donationAmount={campaign.currentAmount.toString()}
-                donationGoal={campaign.goalAmount.toString()}
+                donationGoal={campaign.goalAmount}
                 campaignImage="/images/landing/camp2.png"
                 rightSideImage="/images/landing/new5.png"
                 isNew={index === 0}

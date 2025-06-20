@@ -1,11 +1,9 @@
 import Image from "next/image";
-
 interface CampaignCardProps {
   title: string;
   description: string;
   donationLabel: string;
-  donationAmount: string;
-  donationGoal: string;
+  donationGoal: number;
   campaignImage: string;
   rightSideImage: string;
   isNew?: boolean;
@@ -19,7 +17,6 @@ const CampaignCard = ({
   title,
   description,
   donationLabel,
-  donationAmount,
   donationGoal,
   campaignImage,
   rightSideImage,
@@ -55,7 +52,7 @@ const CampaignCard = ({
           <h3 className="text-xl font-bold text-yellow-800 mb-2">{donationLabel}</h3>
 
           <div className="inline-block bg-white py-3 px-6 rounded-full shadow-md mb-6">
-            <span className="text-2xl font-bold text-yellow-800">{donationAmount}</span>
+            <span className="text-2xl font-bold text-yellow-800">{donationGoal}</span>
             <span className="text-lg text-yellow-600"> / {donationGoal}</span>
           </div>
 
