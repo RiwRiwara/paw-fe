@@ -94,13 +94,8 @@ const FoundationCard = ({
                     </span>
                     <span className="text-gray-600">{phoneNumber}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-rose-700 font-semibold">
-                      ติดต่อทาง:
-                    </span>
-                  </div>
                 </div>
-                <div className="flex gap-3 flex-wrap">
+                <div className="flex gap-3 flex-wrap justify-between">
                   {socialLinks.facebook && (
                     <Link
                       href={socialLinks.facebook}

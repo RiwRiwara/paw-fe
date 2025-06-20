@@ -31,24 +31,24 @@ export default function Foundation() {
 
   // Fetch foundations
   useEffect(() => {
-    // const fetchFoundations = async () => {
-    //   try {
-    //     setLoading(true);
-    //     const response = await api.foundation.getList();
-    //     if (response.data.success && response.data.data) {
-    //       setFoundations(response.data.data);
-    //     } else {
-    //       setError(response.data.message || 'Failed to fetch foundations');
-    //     }
-    //   } catch (err) {
-    //     setError('An error occurred while fetching foundations.');
-    //     console.error(err);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
+    const fetchFoundations = async () => {
+      try {
+        setLoading(true);
+        const response = await api.foundation.getList();
+        if (response.data.success && response.data.data) {
+          setFoundations(response.data.data);
+        } else {
+          setError(response.data.message || 'Failed to fetch foundations');
+        }
+      } catch (err) {
+        setError('An error occurred while fetching foundations.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // fetchFoundations();
+    fetchFoundations();
   }, []);
 
   // Autoplay logic
@@ -96,8 +96,8 @@ export default function Foundation() {
                     description={campaign.description}
                     donationLabel="Donate"
                     donationGoal={campaign.goalAmount}
-                    campaignImage={`/images/foundation/s${(index % 4) + 1}.png`}
-                    rightSideImage={`/images/foundation/s${((index + 1) % 4) + 1}.png`}
+                    campaignImage="/images/landing/camp2.png"
+                    rightSideImage="/images/landing/new5.png"
                     isNew={index === 0}
                     foundationName={campaign.foundationName}
                     foundationSubtitle={campaign.description}
@@ -161,43 +161,30 @@ export default function Foundation() {
           </div>
 
           <div className="grid grid-cols-1 gap-8 max-w-5xl mx-auto" >
-            {/* Foundation Cards */}
-            <div className="grid grid-cols-1 gap-8 max-w-5xl mx-auto">
+            {loading && <p className="text-center text-gray-500">Loading foundations...</p>}
+            {error && <p className="text-center text-red-500">Error: {error}</p>}
+            {!loading && !error && foundations.length === 0 && (
+              <p className="text-center text-gray-500">No foundations found.</p>
+            )}
+            {!loading && !error && foundations.map((foundation, index) => (
               <FoundationCard
-                logo="/images/landing/soid.png"
-                name="มูลนิธิเพื่อหมาในซอย"
-                description="มูลนิธิเพื่อหมาในซอย กรุงเทพ ประเทศไทย มีวัตถุประสงค์เพื่อช่วยเหลือและดูแลสัตว์เลี้ยงที่อยู่ในซอย"
-                phoneNumber="0000000000"
-                images={[
-                  "/images/foundation/s1.png",
-                  "/images/foundation/s2.png",
-                  "/images/foundation/s3.png",
-                  "/images/foundation/s4.png"
-                ]}
-                socialLinks={{
-                  facebook: "https://facebook.com/soidogfoundation",
-                  instagram: "https://instagram.com/soidogfoundation"
-                }}
-                className="mb-8"
-              />
+                  isRight={index % 2 === 0}
+                  key={foundation.id}
+                  id={foundation.id}
+                  logo={foundation.logo || 'https://placehold.co/400x300?text=Pet+Image'}
+                  name={foundation.name}
+                  description={foundation.address}
+                  phoneNumber={"N/A"}
+                  images={(foundation.imageList && foundation.imageList.length > 0) ? foundation.imageList : ["/images/foundation/s1.png", "/images/foundation/s2.png", "/images/foundation/s3.png", "/images/foundation/s4.png"]}
+                  socialLinks={{
+                    facebook: foundation.facebook || undefined,
+                    instagram: foundation.instagram || undefined,
+                    // website: foundation.website || undefined, // Not in current API response
+                  }}
+                  className="mb-8"
+                />
 
-              <FoundationCard
-                logo="/images/foundation/school-foundation.png"
-                name="มูลนิธิสัตว์เลี้ยง"
-                description="มูลนิธิสัตว์เลี้ยง กรุงเทพ ประเทศไทย มีวัตถุประสงค์เพื่อช่วยเหลือและดูแลสัตว์เลี้ยงที่อยู่ในซอย"
-                phoneNumber="0000000000"
-                images={[
-                  "/images/foundation/s5.png",
-                  "/images/foundation/s6.png",
-                  "/images/foundation/s7.png",
-                  "/images/foundation/s8.png"
-                ]}
-                socialLinks={{
-                  facebook: "https://facebook.com/schoolfoundation",
-                  instagram: "https://instagram.com/schoolfoundation"
-                }}
-              />
-            </div>
+            ))}
           </div>
         </div>
       </div>

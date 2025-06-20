@@ -170,13 +170,14 @@ export default function FoundationDetail() {
 
     try {
       // 1. Upload image if provided
-      let imageId: number | undefined;
-      if (petData.image) {
-        const uploadRes = await api.upload.image(petData.image);
-        if (uploadRes.data.success) {
-          imageId = ((uploadRes.data.data as any).imageId || ((uploadRes.data.data as any).id || 0));
-        }
-      }
+      // let imageId: number | undefined;
+      // if (petData.image) {
+      //   const uploadRes = await api.upload.image(petData.image);
+      //   if (uploadRes.data.success) {
+      //     imageId = ((uploadRes.data.data as any).imageId || ((uploadRes.data.data as any).id || 0));
+      //   }
+      // }
+      const imageId = 1;
 
       // 2. Construct request body for creating pet
       const body = {
