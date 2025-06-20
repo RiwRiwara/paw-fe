@@ -18,7 +18,7 @@ apiClient.interceptors.request.use(
         try {
             // Get token from cookies or localStorage
             let token = Cookies.get('login');
-            
+
             // If not in cookies, try localStorage
             if (!token) {
                 const localToken = localStorage.getItem('token');
@@ -31,18 +31,18 @@ apiClient.interceptors.request.use(
             console.debug("API Request:", {
                 url: config.url,
                 hasToken: !!token,
-                tokenLength: token ? token.length : 0, 
+                tokenLength: token ? token.length : 0,
                 tokenPreview: token ? `${token.substring(0, 5)}...` : null,
             });
-            
+
             if (token) {
                 // Set Authorization header with Bearer token
                 config.headers = config.headers || {};
                 config.headers['Authorization'] = `Bearer ${token}`;
-                
+
                 // Ensure credentials (cookies) are included with requests
                 config.withCredentials = true;
-                
+
                 console.debug("✓ Authentication set for request to:", config.url);
             } else {
                 console.warn("❌ No authentication token found for request to:", config.url);
@@ -79,7 +79,7 @@ apiClient.interceptors.response.use(
                     hasAuthHeader: !!error.config?.headers?.Authorization
                 }
             });
-            
+
             // Special handling for authentication errors
             if (error.response.status === 401) {
                 console.warn("Authentication error: Token may be invalid or expired");
@@ -223,7 +223,6 @@ export interface DonateChannel {
 }
 
 export interface FoundationInfo {
-    foundationId: number;
     foundationName: string;
     address: string;
     bio: string | null;
@@ -338,6 +337,7 @@ const api = {
         image: (file: File) => {
             const formData = new FormData();
             formData.append("file", file);
+            formData.append("type", "image");
             return apiClient.post<InfoResponse<UploadResponse>>("/upload", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
@@ -345,6 +345,8 @@ const api = {
     },
     foundation: {
         getList: () => apiClient.get<InfoResponse<FoundationInfo[]>>("/user/foundation/list"),
+        getFoundationInfo: () => apiClient.get<InfoResponse<FoundationInfo>>("/user/foundation/info"),
+        getFoundationPets: () => apiClient.get<InfoResponse<Pet[]>>("/user/foundation/pets"),
     },
 
     user: {

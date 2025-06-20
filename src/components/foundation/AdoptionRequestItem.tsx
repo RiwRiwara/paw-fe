@@ -6,7 +6,7 @@ export interface AdoptionRequest {
   userId: number;
   petId: number;
   petName: string;
-  petType: 'สุนัข' | 'แมว';
+  petType: 'หมา' | 'แมว';
   petAge: string;
   userName: string;
   userImage: string;

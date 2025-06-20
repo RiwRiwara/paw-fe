@@ -3,7 +3,7 @@ import PetCard from './PetCard';
 interface Pet {
   id: number;
   name: string;
-  type: 'สุนัข' | 'แมว';
+  type: 'หมา' | 'แมว';
   age: string;
   image: string;
   isAdopted: boolean;
@@ -26,7 +26,7 @@ const PetSection = ({ title, showAdopted, pets }: PetSectionProps) => {
           <div className="bg-rose-400 text-white rounded-lg px-3 py-1">ทั้งหมด</div>
           <select className="bg-white border border-gray-200 rounded-lg px-3 py-1 text-sm">
             <option value="">ทั้งหมด</option>
-            <option value="dog">สุนัข</option>
+            <option value="dog">หมา</option>
             <option value="cat">แมว</option>
           </select>
         </div>

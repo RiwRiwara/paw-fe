@@ -31,7 +31,7 @@ interface Foundation {
 interface Pet {
   id: number;
   name: string;
-  type: 'สุนัข' | 'แมว';
+  type: 'หมา' | 'แมว';
   age: string;
   image: string;
   isAdopted: boolean;
@@ -42,7 +42,7 @@ interface AdoptionRequest {
   userId: number;
   petId: number;
   petName: string;
-  petType: 'สุนัข' | 'แมว';
+  petType: 'หมา' | 'แมว';
   petAge: string;
   userName: string;
   userImage: string;
@@ -72,7 +72,7 @@ export default function FoundationDetail() {
         const mockFoundation: Foundation = {
           id: parseInt(params.id as string),
           name: "Soi Dog Foundation",
-          description: "มูลนิธิเพื่อสุนัขในซอย กรุงเทพ",
+          description: "มูลนิธิเพื่อหมาในซอย กรุงเทพ",
           logo: "/images/landing/soid.png",
           phoneNumber: "0812345678",
           images: [
@@ -114,7 +114,7 @@ export default function FoundationDetail() {
           {
             id: 3,
             name: "มาการ์เย่",
-            type: "สุนัข",
+            type: "หมา",
             age: "2 ปี",
             image: "/images/foundation/s3.png",
             isAdopted: false
@@ -122,7 +122,7 @@ export default function FoundationDetail() {
           {
             id: 4,
             name: "โบ๊ท",
-            type: "สุนัข",
+            type: "หมา",
             age: "1 ปี",
             image: "/images/foundation/s4.png",
             isAdopted: false
@@ -146,7 +146,7 @@ export default function FoundationDetail() {
           {
             id: 7,
             name: "ไทย",
-            type: "สุนัข",
+            type: "หมา",
             age: "2 ปี",
             image: "/images/foundation/s1.png",
             isAdopted: true
@@ -154,7 +154,7 @@ export default function FoundationDetail() {
           {
             id: 8,
             name: "มีมี่",
-            type: "สุนัข",
+            type: "หมา",
             age: "4 เดือน",
             image: "/images/foundation/s4.png",
             isAdopted: true
@@ -168,7 +168,7 @@ export default function FoundationDetail() {
             userId: 101,
             petId: 3,
             petName: "มาการ์เย่",
-            petType: "สุนัข",
+            petType: "หมา",
             petAge: "9 เดือน",
             userName: "วินเกอร์ สองแผ่นดิน",
             userImage: "/images/foundation/s2.png",
@@ -366,13 +366,7 @@ export default function FoundationDetail() {
         onClose={() => setShowAdoptionModal(false)}
         adoptionRequests={adoptionRequests}
       />
-      
-      {/* Add Pet Modal */}
-      <AddPetModal
-        isOpen={showAddPetModal}
-        onClose={() => setShowAddPetModal(false)}
-        onSubmit={handleAddPet}
-      />
+
 
     </div>
   );

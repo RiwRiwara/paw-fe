@@ -25,7 +25,7 @@ const CampaignCard = ({
   rightSideImage,
   isNew = true,
   foundationName = "Soi Dog Foundation",
-  foundationSubtitle = "ระดมทุนเพื่อสุนัขพิการ",
+  foundationSubtitle = "ระดมทุนเพื่อหมาพิการ",
   className = "",
   foundationLogo = "/images/landing/soid.png",
 }: CampaignCardProps) => {

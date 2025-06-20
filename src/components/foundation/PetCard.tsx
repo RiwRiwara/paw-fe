@@ -1,9 +1,10 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface PetCardProps {
   id: number;
   name: string;
-  type: 'สุนัข' | 'แมว';
+  type: 'หมา' | 'แมว';
   age: string;
   image: string;
   isAdopted: boolean;
@@ -26,9 +27,9 @@ const PetCard = ({ id, name, type, age, image }: PetCardProps) => {
           <span>{type}</span>
           <span>{age}</span>
         </div>
-        <button className="mt-3 w-full bg-rose-400 hover:bg-rose-500 text-white py-1 rounded-full text-sm transition-colors">
+        <Link href={`/pet?petId=${id}`} className="p-2 mt-3 w-full bg-rose-400 hover:bg-rose-500 text-white py-1 rounded-full text-sm transition-colors">
           read more
-        </button>
+        </Link>
       </div>
     </div>
   );
