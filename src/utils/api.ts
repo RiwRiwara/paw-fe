@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import { getSession } from "next-auth/react";
+import Cookies from 'js-cookie';
 
 // Base configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
@@ -16,8 +16,16 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
     async (config) => {
         try {
-            const session = await getSession();
-            const token = session?.accessToken;
+            // Get token from cookies or localStorage
+            let token = Cookies.get('login');
+            
+            // If not in cookies, try localStorage
+            if (!token) {
+                const localToken = localStorage.getItem('token');
+                if (localToken) {
+                    token = localToken;
+                }
+            }
 
             // Debug token information for troubleshooting
             console.debug("API Request:", {
@@ -28,38 +36,16 @@ apiClient.interceptors.request.use(
             });
             
             if (token) {
-                // 1. Set Authorization header - this is standard for JWT
+                // Set Authorization header with Bearer token
                 config.headers = config.headers || {};
                 config.headers['Authorization'] = `Bearer ${token}`;
                 
-                // 2. Set cookies for authentication - match backend expectations
-                // Setting HttpOnly false so JS can access it (needed for our implementation)
-                // The cookie name 'login' is what the backend expects based on curl test
-                if (typeof window !== 'undefined') {
-                    document.cookie = `login=${token}; path=/; max-age=86400; SameSite=Lax`;
-                }
-                
-                // 3. Critical: ensure credentials are included with requests
-                // This ensures cookies are sent with cross-origin requests
+                // Ensure credentials (cookies) are included with requests
                 config.withCredentials = true;
                 
                 console.debug("✓ Authentication set for request to:", config.url);
             } else {
-                console.warn("❌ No authentication token available for request to:", config.url);
-                // Try to get token from cookie as fallback (browser refresh case)
-                if (typeof window !== 'undefined') {
-                    const cookies = document.cookie.split('; ');
-                    const loginCookie = cookies.find(cookie => cookie.startsWith('login='));
-                    if (loginCookie) {
-                        const cookieToken = loginCookie.split('=')[1];
-                        if (cookieToken) {
-                            console.debug("🔄 Using token from cookie instead of session");
-                            config.headers = config.headers || {};
-                            config.headers['Authorization'] = `Bearer ${cookieToken}`;
-                            config.withCredentials = true;
-                        }
-                    }
-                }
+                console.warn("❌ No authentication token found for request to:", config.url);
             }
         } catch (error) {
             console.error("Error setting auth token:", error);

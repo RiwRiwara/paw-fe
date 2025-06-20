@@ -1,17 +1,10 @@
 "use client";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
+import Cookies from 'js-cookie';
 
-/**
- * The LoginPage component provides a user interface for users to log in.
- * It includes input fields for email and password, a show/hide password toggle,
- * a remember me checkbox, and a button to submit the form.
- * Upon submission, it attempts to authenticate the user using a credentials provider.
- * If authentication fails, it displays an error message. If successful, it redirects the user to the dashboard.
- */
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState("usertest1@gmail.com");
     const [password, setPassword] = useState("12345678");
@@ -24,21 +17,57 @@ const LoginPage: React.FC = () => {
         e.preventDefault();
         setError("");
 
-        const result = await signIn("credentials", {
-            redirect: false,
-            email,
-            password,
-            rememberMe, // Pass rememberMe to the auth process if your backend supports it
-        });
+        try {
+            const response = await fetch(process.env.NEXT_PUBLIC_API_BASE_URL + '/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                    rememberMe
+                }),
+                credentials: 'include'
+            });
 
-        console.log(result);
+            const data = await response.json();
+            console.log("data login", data);
 
-        if (result?.error) {
-            toast.error("Invalid email or password");
-            setError("Invalid email or password");
-        } else {
+            if (!response.ok) {
+                throw new Error(data.message || 'Login failed');
+            }
+            
+            // Save the entire response data to localStorage for debugging
+            localStorage.setItem('loginResponse', JSON.stringify(data));
+            
+            // Handle nested data structure from API response
+            if (data.success && data.code === 200 && data.data) {
+                // Save token to both cookies and localStorage
+                if (data.data.token) {
+                    // Save to cookies
+                    if (rememberMe) {
+                        Cookies.set('login', data.data.token, { expires: 30 });
+                    } else {
+                        Cookies.set('login', data.data.token);
+                    }
+                    
+                    // Save token to localStorage as well
+                    localStorage.setItem('token', data.data.token);
+                }
+                
+                // Save user metadata to localStorage
+                if (data.data.userMetadata) {
+                    localStorage.setItem('user', JSON.stringify(data.data.userMetadata));
+                }
+            }
+
             toast.success("Login successful");
             router.push("/");
+        } catch (err: any) {
+            console.error("Login error:", err);
+            toast.error(err.message || "Invalid email or password");
+            setError(err.message || "Invalid email or password");
         }
     };
 

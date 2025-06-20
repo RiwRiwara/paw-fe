@@ -41,6 +41,12 @@ export default function Pet() {
   if (loading) return <div className="text-center py-20 text-xl">Loading...</div>;
   if (error) return <div className="text-center py-20 text-red-500 text-xl">{error}</div>;
   if (!pet) return null;
+  
+  // Check if the pet has already been adopted
+  const petStatus = (pet?.status as unknown) as string;
+  const isAlreadyAdopted = petStatus === "ได้รับการรับเลี้ยงแล้ว" || 
+                     petStatus === "Adopted" || 
+                     (petStatus && petStatus.includes("ได้รับการรับเลี้ยงแล้ว"));
 
   return (
     <div className="min-h-screen bg-white py-6 px-4 sm:px-6 lg:px-8">
@@ -121,7 +127,7 @@ export default function Pet() {
 
         {/* Status */}
         <div className="flex justify-center mb-8">
-          <span className="bg-white px-6 py-2 text-3xl rounded-full border border-gray-300 shadow-sm text-gray-700">
+          <span className={`px-6 py-2 text-xl md:text-2xl rounded-full shadow-sm ${isAlreadyAdopted ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-white text-gray-700 border border-gray-300'}`}>
             {pet.status}
           </span>
         </div>
@@ -140,15 +146,28 @@ export default function Pet() {
           </div>
         </div>
 
-        {/* Adoption Button */}
+        {/* Adoption Button or Status */}
         <div className="flex justify-center">
-          <a
-            href={`/pet_get?petId=${pet.petId}`}
-            className="bg-[#A53E55] text-white px-8 py-3 rounded-xl text-3xl font-semibold 
-            hover:bg-[#8e3448] transition-colors duration-300 shadow-md"
-          >
-            สนใจรับเลี้ยง
-          </a>
+          {isAlreadyAdopted ? (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-8 py-4 rounded-xl text-center shadow-md">
+              <p className="text-xl font-medium mb-2">น้อง{pet.name} ได้รับการรับเลี้ยงแล้ว</p>
+              <p className="text-sm">ขอบคุณสำหรับความสนใจ คุณสามารถดูน้องๆ ตัวอื่นได้ที่หน้าหลัก</p>
+              <a 
+                href="/"
+                className="inline-block mt-4 bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              >
+                ดูน้องๆ ตัวอื่น
+              </a>
+            </div>
+          ) : (
+            <a
+              href={`/pet_get?petId=${pet.petId}`}
+              className="bg-[#A53E55] text-white px-8 py-3 rounded-xl text-2xl md:text-3xl font-semibold 
+              hover:bg-[#8e3448] transition-colors duration-300 shadow-md"
+            >
+              สนใจรับเลี้ยง
+            </a>
+          )}
         </div>
       </div>
     </div>

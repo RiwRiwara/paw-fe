@@ -4,14 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { useSession } from "next-auth/react";
-import api from "@/utils/api";
 import type { UserInfo } from "@/utils/types";
-import axios from "axios";
+import Cookies from 'js-cookie';
 
 export default function Profile() {
   const { isAuthenticated, loading, user } = useAuth();
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +28,8 @@ export default function Profile() {
 
 
   const [userData, setUserData] = useState({
-    name: "",
+    firstname: "",
+    lastname: "",
     email: "",
     phone: "",
     province: "",
@@ -46,50 +44,65 @@ export default function Profile() {
   });
 
   useEffect(() => {
-
+    // Redirect to login if not authenticated
     if (!loading && !isAuthenticated) {
       router.push("/login?callbackUrl=" + encodeURIComponent(window.location.href));
       return;
     }
 
-    if (isAuthenticated && session?.accessToken) {
+    // Get token from cookies or localStorage
+    const token = Cookies.get('login') || localStorage.getItem('token');
+
+    if (isAuthenticated && token) {
       fetchUserData();
       fetchUserAdoptionRequests();
-    } else if (isAuthenticated && !session?.accessToken) {
-      setError("Session token is missing. Please log out and log in again.");
+    } else if (isAuthenticated && !token) {
+      setError("Token is missing. Please log out and log in again.");
     }
-  }, [isAuthenticated, loading, router, session, status, user]);
+  }, [isAuthenticated, loading, router, user]);
 
   const fetchUserData = async () => {
     try {
       setIsLoading(true);
 
-      if (!session?.accessToken) {
+      // Get token from cookies or localStorage
+      const token = Cookies.get('login') || localStorage.getItem('token');
+      if (!token) {
         setError("Authentication token is missing. Please log in again.");
         return;
       }
 
-      const response = await api.user.getInfo();
+      const response = await fetch(process.env.NEXT_PUBLIC_API_BASE_URL + "/user/info", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        credentials: "include",
+      });
 
-      if (response.data.success) {
-        const userInfo: UserInfo = response.data.data;
+
+      if (response.ok) {
+        const userInfo: any = await response.json();
+        console.log("Response user info:", userInfo.data);
+        
         setUserData((prev) => ({
           ...prev,
-          name: `${userInfo.firstname || ""} ${userInfo.lastname || ""}`.trim(),
-          email: session?.user?.email || "",
-          phone: userInfo.phoneNumber || "",
-          province: userInfo.province || "",
-          bio: userInfo.bio || "",
-          occupation: userInfo.occupation || "",
-          profileImage: userInfo.imageUrl || "https://placehold.co/50x50?text=profile",
+          firstname: userInfo.data.firstname || "",
+          lastname: userInfo.data.lastname || "",
+          phone: userInfo.data.phoneNumber || "",
+          province: userInfo.data.province || "",
+          bio: userInfo.data.bio || "",
+          occupation: userInfo.data.occupation || "",
+          profileImage: userInfo.data.imageUrl || "https://placehold.co/50x50?text=profile",
           joinDate: "Member since 2023",
         }));
       } else {
-        setError(`Failed to load profile: ${response.data.message}`);
+        setError(`Failed to load profile`);
       }
     } catch (err: any) {
       console.error("Error fetching user profile:", err);
-      setError(err.response?.data?.message || "An error occurred while loading your profile");
+      setError("An error occurred while loading your profile");
     } finally {
       setIsLoading(false);
     }
@@ -99,22 +112,34 @@ export default function Profile() {
     try {
       setIsLoading(true);
       setError(null);
+      
+      // Get token from cookies or localStorage
+      const token = Cookies.get('login') || localStorage.getItem('token');
+      if (!token) {
+        setError("Authentication token is missing. Please log in again.");
+        return;
+      }
 
-      const response = await axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + "/user/adoption-request", {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_BASE_URL + "/user/adoption-request", {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
-        withCredentials: true,
+        credentials: "include",
       });
 
-      if (response.data.success) {
-        if (!Array.isArray(response.data.data)) {
-          console.error("Expected array for adoption requests but got:", typeof response.data.data);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Response adoption requests:", data);
+        if (!Array.isArray(data.data)) {
+          console.error("Expected array for adoption requests but got:", typeof data.data);
           setError("Received unexpected data format from server");
           return;
         }
         // Mapping function
-        const adoptionRequests: PetInfo[] = response.data.data.map((request: any) => ({
+        const adoptionRequests: PetInfo[] = data.data.map((request: any) => ({
           petId: request.petId || 0, // Use 0 as fallback instead of random string
           name: request.name || "Unknown Pet",
           imageUrl: request.imageUrl || "https://placehold.co/50x50?text=pet",
@@ -132,12 +157,11 @@ export default function Profile() {
           adoptionRequests: adoptionRequests,
         }));
       } else {
-        setError(`Failed to load adoption requests: ${response.data.message || 'Unknown error'}`);
+        setError(`Failed to load adoption requests`);
       }
     } catch (err: any) {
       console.error("Error fetching adoption requests:", err);
       setError(
-        err.response?.data?.message ||
         err.message ||
         "An error occurred while loading your adoption requests"
       );
@@ -211,7 +235,7 @@ export default function Profile() {
               <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-lg">
                 <img
                   src={userData.profileImage}
-                  alt={userData.name}
+                  alt={userData.firstname + " " + userData.lastname}
                   className="object-cover w-full h-full"
                 />
               </div>
@@ -232,7 +256,7 @@ export default function Profile() {
               </div>
             </div>
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{userData.name}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{userData.firstname + " " + userData.lastname}</h1>
               <p className="text-gray-600 mt-1">Member since {userData.joinDate}</p>
               <div className="mt-4 flex flex-col md:flex-row gap-4">
                 <Link
@@ -289,10 +313,10 @@ export default function Profile() {
                   <h3 className="text-sm font-medium text-gray-500">Email</h3>
                   <p className="text-gray-600">{userData.email}</p>
                 </div>
-                {session?.user?.userType && (
+                {user?.userType && (
                   <div className="mb-3">
                     <p className="text-sm font-medium text-gray-500">Role</p>
-                    <p className="text-gray-600">{session.user.userType}</p>
+                    <p className="text-gray-600">{user.userType}</p>
                   </div>
                 )}
                 <div>

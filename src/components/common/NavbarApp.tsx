@@ -1,12 +1,26 @@
 import React from "react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import Cookies from 'js-cookie';
 
 
 const NavbarApp: React.FC = () => {
     const pathname = usePathname();
+    const router = useRouter();
+    
+    const handleLogout = () => {
+        // Clear cookies
+        Cookies.remove('login');
+        
+        // Clear localStorage items
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('loginResponse');
+        
+        // Redirect to login page
+        router.push('/login');
+    };
 
     return (
         <nav className="h-[80px] w-full flex items-center justify-between bg-white px-4 py-2">
@@ -42,7 +56,7 @@ const NavbarApp: React.FC = () => {
                     Profile
                 </Link>
                 <button
-                    onClick={() => signOut({ callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:8000"}/login` })}
+                    onClick={handleLogout}
                     className="text-orange-400"
                 >
                     Sign Out

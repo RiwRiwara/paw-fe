@@ -152,7 +152,6 @@ export default function Adopt() {
     }
   }, [searchQuery, pets]);
 
-  const last_pets = pets.slice(0, 3);
 
   return (
     <>
