@@ -124,7 +124,7 @@ export default function PersonalityTest() {
 
             {/* Main Content */}
             <div className="flex-grow flex items-start justify-center px-4 py-12 sm:px-6 lg:px-8">
-                <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 md:p-8 border-2 border-yellow-500">
+                <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 md:p-8 border-2 ">
                     {!isCompleted ? (
                         <>
                             {/* Progress Indicator */}

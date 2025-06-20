@@ -288,9 +288,7 @@ export default function Adopt() {
                       <img
                         src={imageUrl || "https://placehold.co/400x300?text=No+Image"}
                         alt={name}
-                        width={400}
-                        height={300}
-                        className="rounded-t-xl"
+                        className="absolute inset-0 w-full h-full object-cover rounded-t-xl"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=No+Image";
                         }}
