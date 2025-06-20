@@ -6,18 +6,34 @@ import Cookies from 'js-cookie';
 
 
 const NavbarApp: React.FC = () => {
+    const [isFoundation, setIsFoundation] = React.useState(false);
     const pathname = usePathname();
+    React.useEffect(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const userObj = JSON.parse(userStr);
+                    // adjust according to actual field names
+                    const role = userObj.role || userObj.type || userObj.userType;
+                    setIsFoundation(role === 'foundation' || role === 'FOUNDATION');
+                }
+            } catch (e) {
+                console.error('Failed to parse user info:', e);
+            }
+        }
+    }, []);
     const router = useRouter();
-    
+
     const handleLogout = () => {
         // Clear cookies
         Cookies.remove('login');
-        
+
         // Clear localStorage items
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('loginResponse');
-        
+
         // Redirect to login page
         router.push('/login');
     };
@@ -34,6 +50,7 @@ const NavbarApp: React.FC = () => {
                     { href: "/", label: "Home" },
                     { href: "/foundation", label: "Foundation" },
                     { href: "/adopt", label: "Adopt" },
+                    ...(isFoundation ? [{ href: "/campaign", label: "campaign" }] : []),
                 ].map(({ href, label }) => (
                     <Link
                         key={href}

@@ -10,7 +10,7 @@ const PetsPage: React.FC = () => {
     useEffect(() => {
         const fetchPets = async () => {
             try {
-                const response = await api.getPets();
+                const response = await api.pet.getPets();
                 if (response.data.success) {
                     setPets(response.data.data);
                 } else {

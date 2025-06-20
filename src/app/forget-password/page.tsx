@@ -16,7 +16,7 @@ const ForgetPasswordPage: React.FC = () => {
         setSuccess("");
 
         try {
-            const response = await api.forgetPassword({ newPassword });
+            const response = await api.auth.forgetPassword({ newPassword });
             if (response.data.success) {
                 setSuccess("Password reset successful! Redirecting to login...");
                 setTimeout(() => router.push("/login"), 2000);

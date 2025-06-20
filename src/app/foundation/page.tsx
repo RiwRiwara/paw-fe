@@ -95,8 +95,7 @@ export default function Foundation() {
                     title={campaign.campaignName}
                     description={campaign.description}
                     donationLabel="Donate"
-                    donationAmount={campaign.goalAmount.toString()}
-                    donationGoal={campaign.goalAmount.toString()}
+                    donationGoal={campaign.goalAmount}
                     campaignImage="/images/landing/camp2.png"
                     rightSideImage="/images/landing/new5.png"
                     isNew={index === 0}
@@ -170,10 +169,10 @@ export default function Foundation() {
             {!loading && !error && foundations.map((foundation, index) => (
               <FoundationCard
                   isRight={index % 2 === 0}
-                  key={foundation.foundationId}
-                  id={foundation.foundationId}
+                  key={foundation.id}
+                  id={foundation.id}
                   logo={foundation.logo || 'https://placehold.co/400x300?text=Pet+Image'}
-                  name={foundation.foundationName}
+                  name={foundation.name}
                   description={foundation.address}
                   phoneNumber={"N/A"}
                   images={(foundation.imageList && foundation.imageList.length > 0) ? foundation.imageList : ["/images/foundation/s1.png", "/images/foundation/s2.png", "/images/foundation/s3.png", "/images/foundation/s4.png"]}

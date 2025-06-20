@@ -223,6 +223,9 @@ export interface DonateChannel {
 }
 
 export interface FoundationInfo {
+    id: number;
+    foundationId: number;
+    name: string;
     foundationName: string;
     address: string;
     bio: string | null;
@@ -319,6 +322,7 @@ const api = {
         forgetPassword: (body: ForgetPasswordBody) => apiClient.post<InfoResponse<string>>("/auth/forget-password", body),
     },
     pet: {
+        getPets: () => apiClient.get<InfoResponse<Pet[]>>("/pet/list"),
         getCategories: () => apiClient.get<InfoResponse<Category[]>>("/categories"),
         createPet: (body: AddPetBody) => apiClient.post<InfoResponse<UserMetadata[]>>("/pet", body),
         getPetsByCategory: (foundationId?: number, species?: Species) =>
