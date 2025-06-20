@@ -114,7 +114,6 @@ export default function Pet() {
                 { label: "ฉีดวัคซีน", value: pet.vaccination },
                 { label: "แพ้อาหาร", value: pet.foodAllergy || "ไม่มี" },
                 { label: "แพ้ยา", value: pet.allergic || "ไม่มี" },
-                { label: "อื่น ๆ", value: pet.Other || "ไม่มี" },
               ].map((item) => (
                 <div key={item.label} className="flex flex-col gap-1">
                   <div className="text-primary-red font-medium text-nowrap">{item.label} :</div>
