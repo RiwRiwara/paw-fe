@@ -51,10 +51,7 @@ const CampaignCard = ({
 
           <h3 className="text-xl font-bold text-yellow-800 mb-2">{donationLabel}</h3>
 
-          <div className="inline-block bg-white py-3 px-6 rounded-full shadow-md mb-6">
-            <span className="text-2xl font-bold text-yellow-800">{donationGoal}</span>
-            <span className="text-lg text-yellow-600"> / {donationGoal}</span>
-          </div>
+
 
           {/* Paw decoration */}
           <div className="absolute bottom-24 left-6">

@@ -49,10 +49,6 @@ const AddCampaignModal = ({ isOpen, onClose, onSubmit }: AddCampaignModalProps) 
       return;
     }
 
-    if (!noTargetAmount && !targetAmount) {
-      toast.error('กรุณาระบุยอดเป้าหมาย');
-      return;
-    }
 
     if (!campaignType) {
       toast.error('กรุณาเลือกประเภทแคมเปญ');
@@ -67,7 +63,7 @@ const AddCampaignModal = ({ isOpen, onClose, onSubmit }: AddCampaignModalProps) 
     const campaignData = {
       title,
       description,
-      targetAmount: noTargetAmount ? null : parseInt(targetAmount),
+      targetAmount: 0,
       campaignType,
       endDate: noEndDate ? null : endDate,
       image: imagePreview, // In a real app, you'd upload the image and get a URL
@@ -196,7 +192,7 @@ const AddCampaignModal = ({ isOpen, onClose, onSubmit }: AddCampaignModalProps) 
             </div>
 
             {/* Target Amount */}
-            <div>
+            <div className="hidden">
               <label htmlFor="targetAmount" className="block text-sm font-medium text-gray-700 mb-2">ยอดเป้าหมายแคมเปญ</label>
               <input
                 type="number"
